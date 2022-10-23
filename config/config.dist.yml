@@ -1,0 +1,8 @@
+# Enables verbose and readable output for the console log
+human_readable_log: true
+
+# https://gitlab.com/-/profile/personal_access_tokens
+gitlab_token: ${GITLAB_TOKEN}
+
+# https://api.slack.com/authentication/token-types#bot
+slack_token: ${SLACK_TOKEN}
