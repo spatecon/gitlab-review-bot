@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/gookit/config/v2"
+	config "github.com/gookit/config/v2"
 	"github.com/gookit/config/v2/yamlv3"
 	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
