@@ -1,8 +1,8 @@
 package ds
 
 type BasicUser struct {
-	Name     string
-	GitLabID int
+	Name     string `bson:"name"`
+	GitLabID int    `bson:"gitlab_id"`
 }
 
 func EqualUser(user *BasicUser, other *BasicUser) bool {
@@ -50,7 +50,7 @@ const (
 )
 
 type User struct {
-	BasicUser
-	SlackID string
-	Label   []UserLabel
+	BasicUser BasicUser   `bson:"basic_user"`
+	SlackID   string      `bson:"slack_id"`
+	Labels    []UserLabel `bson:"labels"`
 }

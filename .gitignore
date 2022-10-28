@@ -26,3 +26,7 @@ go.work
 
 # config
 config/config.yml
+
+# docker-compose local volumes
+
+loc/

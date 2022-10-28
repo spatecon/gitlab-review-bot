@@ -2,6 +2,7 @@ package gitlab
 
 import (
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 	"github.com/xanzy/go-gitlab"
 
 	"github.com/spatecon/gitlab-review-bot/internal/app/ds"
@@ -18,8 +19,9 @@ func (c *Client) MergeRequestsByProject(projectID int) ([]*ds.MergeRequest, erro
 	allMergeRequests := make([]*ds.MergeRequest, 0, perPage)
 
 	for i := 1; i <= maxPages; i++ {
+		log.Trace().Msg("fetching merge requests")
 		// docs: https://docs.gitlab.com/ee/api/merge_requests.html#list-project-merge-requests
-		mergeRequests, _, err := c.gitlab.MergeRequests.ListProjectMergeRequests(
+		mergeRequests, resp, err := c.gitlab.MergeRequests.ListProjectMergeRequests(
 			projectID,
 			&gitlab.ListProjectMergeRequestsOptions{
 				ListOptions: gitlab.ListOptions{
@@ -34,6 +36,10 @@ func (c *Client) MergeRequestsByProject(projectID int) ([]*ds.MergeRequest, erro
 
 		for _, mergeRequest := range mergeRequests {
 			allMergeRequests = append(allMergeRequests, mergeRequestConvert(mergeRequest))
+		}
+
+		if resp.TotalPages <= i {
+			break
 		}
 	}
 

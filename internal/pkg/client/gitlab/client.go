@@ -1,8 +1,6 @@
 package gitlab
 
 import (
-	"time"
-
 	"github.com/pkg/errors"
 	"github.com/xanzy/go-gitlab"
 )
@@ -10,18 +8,16 @@ import (
 type Client struct {
 	// TODO: consider using rate limiter
 
-	gitlab        *gitlab.Client
-	pullMRsPeriod time.Duration
+	gitlab *gitlab.Client
 }
 
-func New(token string, pullMRsPeriod time.Duration) (*Client, error) {
+func New(token string) (*Client, error) {
 	glClient, err := gitlab.NewClient(token)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating gitlab client")
 	}
 
 	return &Client{
-		gitlab:        glClient,
-		pullMRsPeriod: pullMRsPeriod,
+		gitlab: glClient,
 	}, nil
 }

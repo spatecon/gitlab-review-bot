@@ -11,6 +11,14 @@ type Config struct {
 	HumanReadableLog bool   `config:"human_readable_log"`
 	GitlabToken      string `config:"gitlab_token"`
 	SlackToken       string `config:"slack_token"`
+
+	Mongo struct {
+		Host string `config:"host"`
+		Port int    `config:"port"`
+		User string `config:"user"`
+		Pass string `config:"pass"`
+		DB   string `config:"db"`
+	} `config:"mongo"`
 }
 
 func (a *App) initConfig(configPath string) error {

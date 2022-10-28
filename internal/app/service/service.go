@@ -2,14 +2,15 @@ package service
 
 import (
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 
 	"github.com/spatecon/gitlab-review-bot/internal/app/ds"
 	"github.com/spatecon/gitlab-review-bot/internal/app/service/worker"
 )
 
 type Repository interface {
-	Teams() ([]ds.Team, error)
-	Projects() ([]ds.Project, error)
+	Teams() ([]*ds.Team, error)
+	Projects() ([]*ds.Project, error)
 	MergeRequestByID(id int) (*ds.MergeRequest, error)
 	MergeRequestsByProject(projectID int) ([]*ds.MergeRequest, error)
 	UpsertMergeRequest(mr *ds.MergeRequest) error
@@ -30,10 +31,11 @@ type Service struct {
 	workers []Worker
 }
 
-func New(repo Repository) *Service {
+func New(repo Repository, gitlab GitlabClient) (*Service, error) {
 	return &Service{
-		repo: repo,
-	}
+		repo:   repo,
+		gitlab: gitlab,
+	}, nil
 }
 
 func (s *Service) Close() error {
@@ -53,7 +55,7 @@ func (s *Service) SubscribeOnProjects() error {
 	for _, project := range projects {
 		var wrk Worker
 
-		wrk, err = worker.NewGitLabPuller(s.gitlab, s.MergeRequestsHandler, project.ID)
+		wrk, err = worker.NewGitLabPuller(s.gitlab, s.mergeRequestsHandler, project.ID)
 		if err != nil {
 			return errors.Wrap(err, "failed to create gitlab puller")
 		}
@@ -64,7 +66,7 @@ func (s *Service) SubscribeOnProjects() error {
 	return nil
 }
 
-func (s *Service) MergeRequestsHandler(actual *ds.MergeRequest) error {
+func (s *Service) mergeRequestsHandler(actual *ds.MergeRequest) error {
 	// fetch MR from repository
 	old, err := s.repo.MergeRequestByID(actual.ID)
 	if err != nil {
@@ -73,6 +75,7 @@ func (s *Service) MergeRequestsHandler(actual *ds.MergeRequest) error {
 
 	// if no changes, do nothing
 	if old != nil && old.IsEqual(actual) {
+		log.Info().Int("id", actual.ID).Msg("mr skipped")
 		return nil
 	}
 
@@ -81,6 +84,8 @@ func (s *Service) MergeRequestsHandler(actual *ds.MergeRequest) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to update merge request in repository")
 	}
+
+	log.Info().Int("id", actual.ID).Msg("mr updated or created")
 
 	// TODO: launch pipeline
 

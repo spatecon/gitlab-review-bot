@@ -1,8 +1,15 @@
 # Enables verbose and readable output for the console log
 human_readable_log: true
 
-# https://gitlab.com/-/profile/personal_access_tokens
-gitlab_token: ${GITLAB_TOKEN}
+# Environment variables can be used in the config file
+gitlab_token: ${GITLAB_TOKEN} # ref: https://gitlab.com/-/profile/personal_access_tokens
 
-# https://api.slack.com/authentication/token-types#bot
-slack_token: ${SLACK_TOKEN}
+slack_token: ${SLACK_TOKEN} # ref: https://api.slack.com/authentication/token-types#bot
+
+# Database connection
+mongo:
+  host: ${MONGO_HOST}
+  port: ${MONGO_PORT}
+  user: ${MONGO_USER}
+  pass: ${MONGO_PASS}
+  db: ${MONGO_DB}

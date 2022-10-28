@@ -12,23 +12,21 @@ const (
 )
 
 type MergeRequest struct {
-	ID           int
-	IID          int
-	ProjectID    int
-	TargetBranch string
-	SourceBranch string
-	Title        string
-	Description  string
-	State        State
-	Author       *BasicUser
-	Assignees    []*BasicUser
-	Reviewers    []*BasicUser
-	Draft        bool
-	SHA          string
-	UpdatedAt    *time.Time
-	CreatedAt    *time.Time
-
-	//Discussion   Discussion // TODO: fetch discussion
+	ID           int          `bson:"id"`
+	IID          int          `bson:"iid"`
+	ProjectID    int          `bson:"project_id"`
+	TargetBranch string       `bson:"target_branch"`
+	SourceBranch string       `bson:"source_branch"`
+	Title        string       `bson:"title"`
+	Description  string       `bson:"description"`
+	State        State        `bson:"state"`
+	Author       *BasicUser   `bson:"author"`
+	Assignees    []*BasicUser `bson:"assignees"`
+	Reviewers    []*BasicUser `bson:"reviewers"`
+	Draft        bool         `bson:"draft"`
+	SHA          string       `bson:"sha"`
+	UpdatedAt    *time.Time   `bson:"updated_at"`
+	CreatedAt    *time.Time   `bson:"created_at"`
 }
 
 func (a *MergeRequest) IsEqual(b *MergeRequest) bool {

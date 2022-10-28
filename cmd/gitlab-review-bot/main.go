@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"os"
 
 	"github.com/rs/zerolog/log"
 
@@ -22,10 +23,12 @@ func main() {
 	a, err := app.New(fConfigPath)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create app")
+		os.Exit(2)
 	}
 
 	err = a.Run()
 	if err != nil {
 		log.Error().Err(err).Msg("failed to run app")
+		os.Exit(2)
 	}
 }

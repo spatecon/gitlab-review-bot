@@ -1,0 +1,29 @@
+# This docker-compose file is used to run the application in a local environment
+version: "3.9"
+services:
+  mongo:
+    image: mongo
+    restart: on-failure
+    volumes:
+      - './loc/mongodb:/data/db'
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASS}
+      - MONGO_INITDB_DATABASE=${MONGO_DB}
+    ports:
+      - "27617:27017"
+  mongo-express:
+    image: mongo-express
+    restart: always
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongo
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_MONGODB_AUTH_USERNAME=${MONGO_USER}
+      - ME_CONFIG_MONGODB_AUTH_PASSWORD=${MONGO_PASS}
+      - ME_CONFIG_BASICAUTH_USERNAME=${MONGO_USER}
+      - ME_CONFIG_BASICAUTH_PASSWORD=${MONGO_PASS}
+    depends_on:
+      - mongo
+    ports:
+      - "6688:8081"
+

@@ -8,7 +8,7 @@ import (
 	"github.com/spatecon/gitlab-review-bot/internal/app/ds"
 )
 
-const pullPeriod = 2 * time.Minute
+const pullPeriod = 5 * time.Minute
 
 type GitlabClient interface {
 	MergeRequestsByProject(projectID int) ([]*ds.MergeRequest, error)
@@ -42,22 +42,28 @@ func (g *GitLabPuller) Start() {
 	go func() {
 		ticker := time.NewTicker(g.pullPeriod)
 
-		select {
-		case <-ticker.C:
-			mrs, err := g.gitlab.MergeRequestsByProject(g.projectID)
-			if err != nil {
-				log.Error().Err(err).Msg("failed to fetch merge requests")
-			}
-
-			for _, mr := range mrs {
-				err = g.handler(mr)
+		for {
+			select {
+			case <-ticker.C:
+				mrs, err := g.gitlab.MergeRequestsByProject(g.projectID)
 				if err != nil {
-					log.Error().Err(err).Msg("failed to handle merge requests")
+					log.Error().Err(err).Msg("failed to fetch merge requests")
 				}
+
+				log.Info().Int("project_id", g.projectID).
+					Int("count", len(mrs)).
+					Msg("fetched merge requests")
+
+				for _, mr := range mrs {
+					err = g.handler(mr)
+					if err != nil {
+						log.Error().Err(err).Msg("failed to handle merge requests")
+					}
+				}
+			case <-g.close:
+				ticker.Stop()
+				return
 			}
-		case <-g.close:
-			ticker.Stop()
-			return
 		}
 	}()
 }
