@@ -6,6 +6,7 @@ import (
 
 	"github.com/spatecon/gitlab-review-bot/internal/app/ds"
 	"github.com/spatecon/gitlab-review-bot/internal/app/service/worker"
+	"github.com/spatecon/gitlab-review-bot/internal/pkg/fsm"
 )
 
 type Repository interface {
@@ -26,17 +27,31 @@ type Worker interface {
 }
 
 type Service struct {
-	repo   Repository
-	gitlab GitlabClient
+	repo          Repository
+	gitlab        GitlabClient
+	teams         []*ds.Team
+	stateMachines []fsm.StateMachine
 
 	workers []Worker
 }
 
 func New(repo Repository, gitlab GitlabClient) (*Service, error) {
-	return &Service{
+	svc := &Service{
 		repo:   repo,
 		gitlab: gitlab,
-	}, nil
+	}
+
+	err := svc.loadTeams()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to pre-cache teams")
+	}
+
+	err = svc.initStateMachines()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to init state machines")
+	}
+
+	return svc, nil
 }
 
 func (s *Service) Close() error {
@@ -67,40 +82,50 @@ func (s *Service) SubscribeOnProjects() error {
 	return nil
 }
 
-func (s *Service) mergeRequestsHandler(actual *ds.MergeRequest) error {
+func (s *Service) mergeRequestsHandler(mr *ds.MergeRequest) error {
 	// fetch MR from repository
-	old, err := s.repo.MergeRequestByID(actual.ID)
+	old, err := s.repo.MergeRequestByID(mr.ID)
 	if err != nil {
 		return errors.Wrap(err, "failed to fetch merge request from repository")
 	}
 
 	// if no changes, do nothing
-	if old != nil && old.IsEqual(actual) {
-		log.Info().Int("id", actual.ID).Msg("mr skipped")
+	if old != nil && old.IsEqual(mr) {
+		log.Info().Int("id", mr.ID).Msg("mr skipped")
 		return nil
 	}
 
 	// enrich MR with approves
-	approves, err := s.gitlab.MergeRequestApproves(actual.ProjectID, actual.IID)
+	approves, err := s.gitlab.MergeRequestApproves(mr.ProjectID, mr.IID)
 	if err != nil {
 		return errors.Wrap(err, "failed to fetch merge request approves")
 	}
 
 	// TODO: consider m := m1.Merge(m2 MR) method
-	actual.Approves = approves
+	mr.Approves = approves
 	if old != nil {
-		actual.ReviewersByBot = old.ReviewersByBot
+		mr.ReviewersByBot = old.ReviewersByBot
 	}
 
 	// update (or create) it
-	err = s.repo.UpsertMergeRequest(actual)
+	err = s.repo.UpsertMergeRequest(mr)
 	if err != nil {
 		return errors.Wrap(err, "failed to update merge request in repository")
 	}
 
-	log.Info().Int("id", actual.ID).Msg("mr updated or created")
+	log.Info().Int("id", mr.ID).Msg("mr updated or created")
 
-	// TODO: launch pipeline
+	// launch pipeline on each state machine
+	for _, sm := range s.stateMachines {
+		state := sm.State(mr)
+		log.Info().
+			Int("id", mr.IID).
+			Str("state", state.Name()).
+			Str("policy", sm.Policy()).
+			Bool("is_final", state.IsFinal()).
+			Bool("is_approved", state.IsApproved()).
+			Msg("state machine")
+	}
 
 	return nil
 }
