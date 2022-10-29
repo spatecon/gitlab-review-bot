@@ -41,31 +41,39 @@ func NewGitLabPuller(gitlab GitlabClient, handler MergeRequestHandler, projectID
 func (g *GitLabPuller) Start() {
 	go func() {
 		ticker := time.NewTicker(g.pullPeriod)
+		once := time.NewTimer(5 * time.Second)
 
 		for {
 			select {
+			case <-once.C:
+				g.pullAndHandle()
 			case <-ticker.C:
-				mrs, err := g.gitlab.MergeRequestsByProject(g.projectID)
-				if err != nil {
-					log.Error().Err(err).Msg("failed to fetch merge requests")
-				}
-
-				log.Info().Int("project_id", g.projectID).
-					Int("count", len(mrs)).
-					Msg("fetched merge requests")
-
-				for _, mr := range mrs {
-					err = g.handler(mr)
-					if err != nil {
-						log.Error().Err(err).Msg("failed to handle merge requests")
-					}
-				}
+				g.pullAndHandle()
 			case <-g.close:
+				once.Stop()
 				ticker.Stop()
 				return
 			}
 		}
 	}()
+}
+
+func (g *GitLabPuller) pullAndHandle() {
+	mrs, err := g.gitlab.MergeRequestsByProject(g.projectID)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to fetch merge requests")
+	}
+
+	log.Info().Int("project_id", g.projectID).
+		Int("count", len(mrs)).
+		Msg("fetched merge requests")
+
+	for _, mr := range mrs {
+		err = g.handler(mr)
+		if err != nil {
+			log.Error().Err(err).Msg("failed to handle merge requests")
+		}
+	}
 }
 
 func (g *GitLabPuller) Close() {

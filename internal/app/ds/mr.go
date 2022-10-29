@@ -27,8 +27,14 @@ type MergeRequest struct {
 	SHA          string       `bson:"sha"`
 	UpdatedAt    *time.Time   `bson:"updated_at"`
 	CreatedAt    *time.Time   `bson:"created_at"`
+
+	// Additional information
+	Approves []*BasicUser `bson:"approves"`
+	// ReviewersByBot users that were added by bot
+	ReviewersByBot []*User `bson:"bot_reviewers"`
 }
 
+// IsEqual checks if two merge requests are equal (according to basic information)
 func (a *MergeRequest) IsEqual(b *MergeRequest) bool {
 	if a == nil && b == nil {
 		return true

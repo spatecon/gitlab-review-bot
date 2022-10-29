@@ -50,7 +50,7 @@ const (
 )
 
 type User struct {
-	BasicUser BasicUser   `bson:"basic_user"`
+	BasicUser *BasicUser  `bson:"basic_user"`
 	SlackID   string      `bson:"slack_id"`
 	Labels    []UserLabel `bson:"labels"`
 }

@@ -18,6 +18,7 @@ type Repository interface {
 
 type GitlabClient interface {
 	MergeRequestsByProject(projectID int) ([]*ds.MergeRequest, error)
+	MergeRequestApproves(projectID int, iid int) ([]*ds.BasicUser, error)
 }
 
 type Worker interface {
@@ -77,6 +78,18 @@ func (s *Service) mergeRequestsHandler(actual *ds.MergeRequest) error {
 	if old != nil && old.IsEqual(actual) {
 		log.Info().Int("id", actual.ID).Msg("mr skipped")
 		return nil
+	}
+
+	// enrich MR with approves
+	approves, err := s.gitlab.MergeRequestApproves(actual.ProjectID, actual.IID)
+	if err != nil {
+		return errors.Wrap(err, "failed to fetch merge request approves")
+	}
+
+	// TODO: consider m := m1.Merge(m2 MR) method
+	actual.Approves = approves
+	if old != nil {
+		actual.ReviewersByBot = old.ReviewersByBot
 	}
 
 	// update (or create) it
