@@ -169,3 +169,48 @@ func TestEqualUsers(t *testing.T) {
 		})
 	}
 }
+
+func TestUserLabels_Has(t *testing.T) {
+	t.Parallel()
+
+	type args struct {
+		label UserLabel
+	}
+
+	tests := []struct {
+		name string
+		u    UserLabels
+		args args
+		want bool
+	}{
+		{
+			name: "has label",
+			u: UserLabels{
+				LeadLabel,
+				DeveloperLabel,
+			},
+			args: args{
+				label: DeveloperLabel,
+			},
+			want: true,
+		},
+		{
+			name: "has not label",
+			u: UserLabels{
+				LeadLabel,
+			},
+			args: args{
+				label: DeveloperLabel,
+			},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.u.Has(tt.args.label); got != tt.want {
+				t.Errorf("UserLabels.Has() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

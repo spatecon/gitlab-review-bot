@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog"
 	"go.mongodb.org/mongo-driver/mongo"
 
+	"github.com/spatecon/gitlab-review-bot/internal/app/ds"
 	"github.com/spatecon/gitlab-review-bot/internal/app/repository"
 	"github.com/spatecon/gitlab-review-bot/internal/app/service"
 	"github.com/spatecon/gitlab-review-bot/internal/pkg/client/gitlab"
@@ -21,7 +22,10 @@ type App struct {
 
 	gitlabClient *gitlab.Client
 
-	service *service.Service
+	policies map[ds.PolicyName]service.Policy
+	service  *service.Service
+
+	// TODO: graceful shutdown
 }
 
 func New(configPath string) (*App, error) {
@@ -42,6 +46,11 @@ func New(configPath string) (*App, error) {
 	err = app.initClients()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to init clients")
+	}
+
+	err = app.initPolicies()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to init policies")
 	}
 
 	err = app.initService()

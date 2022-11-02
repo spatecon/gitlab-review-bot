@@ -1,5 +1,7 @@
 package ds
 
+import "github.com/samber/lo"
+
 type BasicUser struct {
 	Name     string `bson:"name"`
 	GitLabID int    `bson:"gitlab_id"`
@@ -46,11 +48,18 @@ func EqualUsers(left []*BasicUser, right []*BasicUser) bool {
 type UserLabel string
 
 const (
-	Lead UserLabel = "lead"
+	LeadLabel      UserLabel = "lead"
+	DeveloperLabel UserLabel = "developer"
 )
 
+type UserLabels []UserLabel
+
+func (u UserLabels) Has(label UserLabel) bool {
+	return lo.Contains(u, label)
+}
+
 type User struct {
-	BasicUser *BasicUser  `bson:"basic_user"`
-	SlackID   string      `bson:"slack_id"`
-	Labels    []UserLabel `bson:"labels"`
+	*BasicUser `bson:"basic_user"`
+	SlackID    string     `bson:"slack_id"`
+	Labels     UserLabels `bson:"labels"`
 }

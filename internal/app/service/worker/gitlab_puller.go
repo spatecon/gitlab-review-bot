@@ -41,16 +41,16 @@ func NewGitLabPuller(gitlab GitlabClient, handler MergeRequestHandler, projectID
 func (g *GitLabPuller) Start() {
 	go func() {
 		ticker := time.NewTicker(g.pullPeriod)
-		once := time.NewTimer(5 * time.Second)
+		startup := time.NewTimer(5 * time.Second)
 
 		for {
 			select {
-			case <-once.C:
+			case <-startup.C:
 				g.pullAndHandle()
 			case <-ticker.C:
 				g.pullAndHandle()
 			case <-g.close:
-				once.Stop()
+				startup.Stop()
 				ticker.Stop()
 				return
 			}

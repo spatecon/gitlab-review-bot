@@ -6,7 +6,6 @@ import (
 
 	"github.com/spatecon/gitlab-review-bot/internal/app/ds"
 	"github.com/spatecon/gitlab-review-bot/internal/app/service/worker"
-	"github.com/spatecon/gitlab-review-bot/internal/pkg/fsm"
 )
 
 type Repository interface {
@@ -26,29 +25,30 @@ type Worker interface {
 	Close()
 }
 
+type Policy interface {
+	ProcessChanges(team *ds.Team, mr *ds.MergeRequest) (err error)
+}
+
 type Service struct {
-	repo          Repository
-	gitlab        GitlabClient
-	teams         []*ds.Team
-	stateMachines []fsm.StateMachine
+	r        Repository
+	g        GitlabClient
+	teams    []*ds.Team
+	policies map[ds.PolicyName]Policy
 
 	workers []Worker
 }
 
-func New(repo Repository, gitlab GitlabClient) (*Service, error) {
+func New(r Repository, g GitlabClient, p map[ds.PolicyName]Policy) (*Service, error) {
 	svc := &Service{
-		repo:   repo,
-		gitlab: gitlab,
+		r:        r,
+		g:        g,
+		policies: p,
 	}
 
+	// TODO: team hot reload
 	err := svc.loadTeams()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to pre-cache teams")
-	}
-
-	err = svc.initStateMachines()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to init state machines")
 	}
 
 	return svc, nil
@@ -63,7 +63,7 @@ func (s *Service) Close() error {
 }
 
 func (s *Service) SubscribeOnProjects() error {
-	projects, err := s.repo.Projects()
+	projects, err := s.r.Projects()
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func (s *Service) SubscribeOnProjects() error {
 	for _, project := range projects {
 		var wrk Worker
 
-		wrk, err = worker.NewGitLabPuller(s.gitlab, s.mergeRequestsHandler, project.ID)
+		wrk, err = worker.NewGitLabPuller(s.g, s.mergeRequestsHandler, project.ID)
 		if err != nil {
 			return errors.Wrap(err, "failed to create gitlab puller")
 		}
@@ -84,7 +84,7 @@ func (s *Service) SubscribeOnProjects() error {
 
 func (s *Service) mergeRequestsHandler(mr *ds.MergeRequest) error {
 	// fetch MR from repository
-	old, err := s.repo.MergeRequestByID(mr.ID)
+	old, err := s.r.MergeRequestByID(mr.ID)
 	if err != nil {
 		return errors.Wrap(err, "failed to fetch merge request from repository")
 	}
@@ -96,35 +96,42 @@ func (s *Service) mergeRequestsHandler(mr *ds.MergeRequest) error {
 	}
 
 	// enrich MR with approves
-	approves, err := s.gitlab.MergeRequestApproves(mr.ProjectID, mr.IID)
+	approves, err := s.g.MergeRequestApproves(mr.ProjectID, mr.IID)
 	if err != nil {
 		return errors.Wrap(err, "failed to fetch merge request approves")
 	}
 
-	// TODO: consider m := m1.Merge(m2 MR) method
 	mr.Approves = approves
-	if old != nil {
-		mr.ReviewersByBot = old.ReviewersByBot
-	}
 
 	// update (or create) it
-	err = s.repo.UpsertMergeRequest(mr)
+	err = s.r.UpsertMergeRequest(mr)
 	if err != nil {
 		return errors.Wrap(err, "failed to update merge request in repository")
 	}
 
 	log.Info().Int("id", mr.ID).Msg("mr updated or created")
 
-	// launch pipeline on each state machine
-	for _, sm := range s.stateMachines {
-		state := sm.State(mr)
-		log.Info().
-			Int("id", mr.IID).
-			Str("state", state.Name()).
-			Str("policy", sm.Policy()).
-			Bool("is_final", state.IsFinal()).
-			Bool("is_approved", state.IsApproved()).
-			Msg("state machine")
+	// process MR
+
+	for _, team := range s.teams {
+		policy, ok := s.policies[team.Policy]
+		if !ok {
+			log.Error().
+				Str("team", team.Name).
+				Str("policy", string(team.Policy)).
+				Msg("failed to process updates unknown policy")
+			continue
+		}
+
+		err = policy.ProcessChanges(team, mr)
+		if err != nil {
+			log.Error().
+				Err(err).
+				Str("team", team.Name).
+				Str("policy", string(team.Policy)).
+				Msg("failed to process merge request")
+		}
+
 	}
 
 	return nil

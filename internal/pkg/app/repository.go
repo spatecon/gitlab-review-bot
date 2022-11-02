@@ -31,7 +31,7 @@ func (a *App) initRepository() error {
 
 	log.Trace().Msg("trying to connect to mongo")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	err = a.mongoClient.Connect(ctx)

@@ -30,8 +30,6 @@ type MergeRequest struct {
 
 	// Additional information
 	Approves []*BasicUser `bson:"approves"`
-	// ReviewersByBot users that were added by bot
-	ReviewersByBot []*User `bson:"bot_reviewers"`
 }
 
 // IsEqual checks if two merge requests are equal (according to basic information)
