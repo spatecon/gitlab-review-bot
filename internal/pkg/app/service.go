@@ -6,13 +6,13 @@ import (
 	"github.com/spatecon/gitlab-review-bot/internal/app/ds"
 	"github.com/spatecon/gitlab-review-bot/internal/app/service"
 
-	pscoring "github.com/spatecon/gitlab-review-bot/internal/app/service/policy/scoring"
+	prd "github.com/spatecon/gitlab-review-bot/internal/app/service/policy/reinventing-democracy"
 )
 
 func (a *App) initPolicies() error {
 	a.policies = make(map[ds.PolicyName]service.Policy)
 
-	a.policies[pscoring.PolicyName] = pscoring.New(a.repository, a.gitlabClient)
+	a.policies[prd.PolicyName] = prd.New(a.repository, a.gitlabClient)
 
 	return nil
 }

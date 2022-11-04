@@ -32,11 +32,11 @@ Review bot (written in Go)
 
 ## Examples of Review&Approve policy
 
-|          Policy          |                Reviews Selection                |    Code Approval    |
-|:------------------------:|:-----------------------------------------------:|:-------------------:|
-| TeamLead is always right | random pick 2 devs and lead 👩‍💻🧑‍💻 + 🧙‍♂️️ |    lead approve     |
-|     Developers riot      |          random pick 2 devs 👩‍💻🧑‍💻          | any of devs approve |
-|  Reinventing Democracy   |          random pick 2 devs 👩‍💻👨‍💻          | half of dev approve |
+|          Policy          |                Reviews Selection                | Code Approval |
+|:------------------------:|:-----------------------------------------------:|:-------------:|
+| TeamLead is always right | random pick 2 devs and lead 👩‍💻🧑‍💻 + 🧙‍♂️️ |    1 lead     |
+|     Developers riot      |          random pick 2 devs 👩‍💻🧑‍💻          |     1 dev     |
+|  Reinventing Democracy   |          random pick 2 devs 👩‍💻👨‍💻          |    2 devs     |
 
 ---
 

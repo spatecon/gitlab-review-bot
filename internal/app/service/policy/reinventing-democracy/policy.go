@@ -1,8 +1,8 @@
-package scoring
+package reinventing_democracy
 
 /**
 
-Policy:					Gen Z invented Democracy
+Policy:					Reinventing Democracy
 Reviewers Rotation:		random pick 2 developers from the team
 Final Approve:			2 approves from the team
 
@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	PolicyName ds.PolicyName = "scoring"
+	PolicyName ds.PolicyName = "reinventing_democracy"
 	// DevelopersCount number of developers to be picked
 	DevelopersCount = 2
 )
