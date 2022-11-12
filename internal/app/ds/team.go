@@ -3,11 +3,15 @@ package ds
 type PolicyName string
 
 type Team struct {
-	ID             string     `bson:"_id"`
-	Name           string     `bson:"name"`
-	Members        []*User    `bson:"members"`
-	SlackChannelID string     `bson:"slack_channel_id"`
-	Policy         PolicyName `bson:"policy"`
+	ID                    string     `bson:"_id"`
+	Name                  string     `bson:"name"`
+	Members               []*User    `bson:"members"`
+	SlackChannelID        string     `bson:"slack_channel_id"`
+	Policy                PolicyName `bson:"policy"`
+	NotificationTemplates struct {
+		UserNotification    string `bson:"user_notification"`
+		ChannelNotification string `bson:"channel_notification"`
+	} `bson:"notification_templates"`
 }
 
 // Teammate checks if user is a member of a team
