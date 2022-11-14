@@ -10,7 +10,7 @@ import (
 )
 
 func (r *Repository) Teams() ([]*ds.Team, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	ctx, cancel := context.WithTimeout(r.ctx, defaultTimeout)
 	defer cancel()
 
 	cursor, err := r.teams.Find(ctx, bson.D{})

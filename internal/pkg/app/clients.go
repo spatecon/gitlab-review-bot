@@ -9,7 +9,7 @@ import (
 func (a *App) initClients() error {
 	var err error
 
-	a.gitlabClient, err = gitlab.New(a.cfg.GitlabToken)
+	a.gitlabClient, err = gitlab.New(a.ctx, a.cfg.GitlabToken)
 	if err != nil {
 		return errors.Wrap(err, "failed to init gitlab client")
 	}

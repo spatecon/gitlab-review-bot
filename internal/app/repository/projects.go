@@ -10,7 +10,7 @@ import (
 )
 
 func (r *Repository) Projects() ([]*ds.Project, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	ctx, cancel := context.WithTimeout(r.ctx, defaultTimeout)
 	defer cancel()
 
 	cursor, err := r.projects.Find(ctx, bson.D{})

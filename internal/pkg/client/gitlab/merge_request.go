@@ -29,7 +29,7 @@ func (c *Client) MergeRequestsByProject(projectID int) ([]*ds.MergeRequest, erro
 					PerPage: perPage,
 				},
 			},
-		)
+			gitlab.WithContext(c.ctx))
 		if err != nil {
 			return nil, errors.Wrap(err, "error getting merge requests")
 		}
