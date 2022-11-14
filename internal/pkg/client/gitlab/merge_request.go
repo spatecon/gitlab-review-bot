@@ -13,6 +13,7 @@ const (
 	maxPages = 10
 )
 
+// MergeRequestsByProject only last 1000 merge requests are processed
 func (c *Client) MergeRequestsByProject(projectID int) ([]*ds.MergeRequest, error) {
 	// TODO: consider using webhooks
 

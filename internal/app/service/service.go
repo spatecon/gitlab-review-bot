@@ -62,6 +62,7 @@ func (s *Service) Close() error {
 	return nil
 }
 
+// SubscribeOnProjects Creates workers for each project and subscribe on merge requests changes
 func (s *Service) SubscribeOnProjects() error {
 	projects, err := s.r.Projects()
 	if err != nil {

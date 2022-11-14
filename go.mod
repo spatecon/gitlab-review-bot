@@ -8,18 +8,22 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.28.0
 	github.com/samber/lo v1.34.0
+	github.com/slack-go/slack v0.11.4
 	github.com/stretchr/testify v1.8.1
 	github.com/xanzy/go-gitlab v0.74.0
 	github.com/zyedidia/generic v1.2.0
 	go.mongodb.org/mongo-driver v1.11.0
+	go.uber.org/ratelimit v0.2.0
 )
 
 require (
+	github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/gookit/goutil v0.5.15 // indirect
+	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.1 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect

@@ -14,6 +14,7 @@ import (
 	"github.com/spatecon/gitlab-review-bot/internal/app/repository"
 	"github.com/spatecon/gitlab-review-bot/internal/app/service"
 	"github.com/spatecon/gitlab-review-bot/internal/pkg/client/gitlab"
+	"github.com/spatecon/gitlab-review-bot/internal/pkg/client/slack"
 )
 
 type App struct {
@@ -24,6 +25,7 @@ type App struct {
 	repository  *repository.Repository
 
 	gitlabClient *gitlab.Client
+	slackClient  *slack.Client
 
 	policies map[ds.PolicyName]service.Policy
 	service  *service.Service
