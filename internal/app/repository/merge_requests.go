@@ -12,9 +12,8 @@ import (
 )
 
 func (r *Repository) MergeRequestByID(id int) (*ds.MergeRequest, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	ctx, cancel := context.WithTimeout(r.ctx, defaultTimeout)
 	defer cancel()
-
 	mergeRequest := &ds.MergeRequest{}
 
 	err := r.mergeRequests.FindOne(ctx, bson.D{{"id", id}}).Decode(&mergeRequest)
@@ -30,7 +29,7 @@ func (r *Repository) MergeRequestByID(id int) (*ds.MergeRequest, error) {
 }
 
 func (r *Repository) MergeRequestsByProject(projectID int) ([]*ds.MergeRequest, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	ctx, cancel := context.WithTimeout(r.ctx, defaultTimeout)
 	defer cancel()
 
 	cursor, err := r.mergeRequests.Find(ctx, bson.D{{"project_id", projectID}})
@@ -49,7 +48,7 @@ func (r *Repository) MergeRequestsByProject(projectID int) ([]*ds.MergeRequest, 
 }
 
 func (r *Repository) UpsertMergeRequest(mr *ds.MergeRequest) error {
-	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	ctx, cancel := context.WithTimeout(r.ctx, defaultTimeout)
 	defer cancel()
 
 	opts := &options.UpdateOptions{}

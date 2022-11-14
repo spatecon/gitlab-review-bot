@@ -20,7 +20,7 @@ type policyMetadataDocument struct {
 }
 
 func (r *Repository) PolicyMetadata(mr *ds.MergeRequest, team *ds.Team, policy ds.PolicyName) (bson.Raw, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	ctx, cancel := context.WithTimeout(r.ctx, defaultTimeout)
 	defer cancel()
 
 	result := policyMetadataDocument{}
@@ -42,7 +42,7 @@ func (r *Repository) PolicyMetadata(mr *ds.MergeRequest, team *ds.Team, policy d
 }
 
 func (r *Repository) UpdatePolicyMetadata(mr *ds.MergeRequest, team *ds.Team, policy ds.PolicyName, d bson.Raw) error {
-	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	ctx, cancel := context.WithTimeout(r.ctx, defaultTimeout)
 	defer cancel()
 
 	doc := policyMetadataDocument{

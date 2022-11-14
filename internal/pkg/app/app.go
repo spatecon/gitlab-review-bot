@@ -1,7 +1,10 @@
 package app
 
 import (
+	"context"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
@@ -25,11 +28,15 @@ type App struct {
 	policies map[ds.PolicyName]service.Policy
 	service  *service.Service
 
-	// TODO: graceful shutdown
+	// graceful shutdown
+	ctx      context.Context
+	closeCtx func()
 }
 
 func New(configPath string) (*App, error) {
 	app := &App{}
+
+	app.ctx, app.closeCtx = context.WithCancel(context.Background())
 
 	err := app.initConfig(configPath)
 	if err != nil {
@@ -71,9 +78,11 @@ func (a *App) Run() error {
 		return errors.Wrap(err, "failed to subscribe on projects")
 	}
 
-	ch := make(chan os.Signal)
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
 
 	<-ch
+	a.closer()
 
 	return nil
 }

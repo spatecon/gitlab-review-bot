@@ -13,6 +13,8 @@ import (
 const defaultTimeout = 5 * time.Second
 
 type Repository struct {
+	ctx context.Context
+
 	conn *mongo.Client
 
 	teams          *mongo.Collection
@@ -21,10 +23,11 @@ type Repository struct {
 	policyMetadata *mongo.Collection
 }
 
-func New(conn *mongo.Client, databaseName string) (*Repository, error) {
+func New(rootCtx context.Context, conn *mongo.Client, databaseName string) (*Repository, error) {
 	database := conn.Database(databaseName)
 
 	r := &Repository{
+		ctx:            rootCtx,
 		conn:           conn,
 		teams:          database.Collection("teams"),
 		projects:       database.Collection("projects"),
@@ -41,7 +44,10 @@ func New(conn *mongo.Client, databaseName string) (*Repository, error) {
 }
 
 func (r *Repository) createIndexes() error {
-	_, err := r.mergeRequests.Indexes().CreateMany(context.Background(),
+	ctx, cancel := context.WithTimeout(r.ctx, defaultTimeout)
+	defer cancel()
+
+	_, err := r.mergeRequests.Indexes().CreateMany(ctx,
 		[]mongo.IndexModel{
 			{
 				Keys:    bson.D{{"iid", 1}, {"project", 1}},
