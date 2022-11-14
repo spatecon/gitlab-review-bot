@@ -12,12 +12,14 @@ import (
 const defaultTimeout = 5 * time.Second
 
 type Client struct {
+	ctx   context.Context
 	slack *slack.Client
 	rl    ratelimit.Limiter
 }
 
-func New(token string) (*Client, error) {
+func New(rootCtx context.Context, token string) (*Client, error) {
 	c := &Client{
+		ctx:   rootCtx,
 		slack: slack.New(token),
 		rl:    ratelimit.New(1),
 	}
@@ -29,8 +31,9 @@ func New(token string) (*Client, error) {
 func (c *Client) SendMessage(recipientID string, message string) error {
 	c.rl.Take()
 
-	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	ctx, cancel := context.WithTimeout(c.ctx, defaultTimeout)
 	defer cancel()
+
 	_, _, err := c.slack.PostMessageContext(ctx,
 		recipientID,
 		slack.MsgOptionText(message, false),

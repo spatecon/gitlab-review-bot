@@ -15,7 +15,7 @@ func (a *App) initClients() error {
 		return errors.Wrap(err, "failed to init gitlab client")
 	}
 
-	a.slackClient, err = slack.New(a.cfg.SlackToken)
+	a.slackClient, err = slack.New(a.ctx, a.cfg.SlackToken)
 	if err != nil {
 		return errors.Wrap(err, "failed to init slack client")
 	}
