@@ -9,7 +9,7 @@ require (
 	github.com/rs/zerolog v1.28.0
 	github.com/samber/lo v1.33.0
 	github.com/stretchr/testify v1.8.1
-	github.com/xanzy/go-gitlab v0.73.1
+	github.com/xanzy/go-gitlab v0.74.0
 	github.com/zyedidia/generic v1.2.0
 	go.mongodb.org/mongo-driver v1.10.3
 )
