@@ -11,7 +11,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/xanzy/go-gitlab v0.73.1
 	github.com/zyedidia/generic v1.2.0
-	go.mongodb.org/mongo-driver v1.10.3
+	go.mongodb.org/mongo-driver v1.11.0
 )
 
 require (
