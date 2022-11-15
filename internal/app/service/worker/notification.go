@@ -112,7 +112,7 @@ func (n *Notifications) getMergeRequests(devs []*ds.User) (
 		}
 	}
 
-	return nil, nil, err
+	return
 }
 
 func (n *Notifications) slackMessages(

@@ -1,7 +1,11 @@
 package service
 
 import (
+	"context"
+	"time"
+
 	"github.com/pkg/errors"
+	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog/log"
 
 	"github.com/spatecon/gitlab-review-bot/internal/app/ds"
@@ -42,6 +46,7 @@ type Service struct {
 	slack    SlackClient
 	teams    []*ds.Team
 	policies map[ds.PolicyName]Policy
+	cron     *cron.Cron
 
 	workers []Worker
 }
@@ -72,7 +77,17 @@ func (s *Service) Close() error {
 		wrk.Close()
 	}
 
-	return nil
+	cronCtx := s.cron.Stop()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	select {
+	case <-cronCtx.Done():
+		return nil
+	case <-ctx.Done():
+		return errors.New("cron stopped dirty by timeout")
+	}
 }
 
 // SubscribeOnProjects Creates workers for each project and subscribe on merge requests changes

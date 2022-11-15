@@ -21,7 +21,7 @@ func (s *Service) loadTeams() (err error) {
 func (s *Service) initNotifications() error {
 	l := logger.CronLogger{L: log.Logger}
 
-	cro := cron.New(cron.WithChain(
+	s.cron = cron.New(cron.WithChain(
 		cron.Recover(l),
 		cron.SkipIfStillRunning(l),
 	))
@@ -46,7 +46,7 @@ func (s *Service) initNotifications() error {
 
 		wrk := worker.NewNotificationsWorker(team, policy, s.r, s.slack)
 
-		_, err := cro.AddJob(team.Notifications.Cron, wrk)
+		_, err := s.cron.AddJob(team.Notifications.Cron, wrk)
 		if err != nil {
 			return errors.Wrapf(err,
 				"failed to add notification worker for %s team (%s)", team.ID, team.Notifications.Cron)
