@@ -8,7 +8,10 @@ import (
 	"github.com/spatecon/gitlab-review-bot/internal/app/ds"
 )
 
-const pullPeriod = 5 * time.Minute
+const (
+	gitlabPullerWorkerName = "gitlab_puller_worker"
+	pullPeriod             = 5 * time.Minute
+)
 
 type GitlabClient interface {
 	MergeRequestsByProject(projectID int) ([]*ds.MergeRequest, error)
@@ -57,19 +60,24 @@ func (g *GitLabPuller) Run() {
 }
 
 func (g *GitLabPuller) pullAndHandle() {
+	l := log.With().
+		Str("worker", gitlabPullerWorkerName).
+		Int("project_id", g.projectID).
+		Logger()
+
 	mrs, err := g.gitlab.MergeRequestsByProject(g.projectID)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to fetch merge requests")
+		l.Error().Err(err).Msg("failed to fetch merge requests")
 	}
 
-	log.Info().Int("project_id", g.projectID).
+	l.Info().Int("project_id", g.projectID).
 		Int("count", len(mrs)).
 		Msg("fetched merge requests")
 
 	for _, mr := range mrs {
 		err = g.handler(mr)
 		if err != nil {
-			log.Error().Err(err).Msg("failed to handle merge requests")
+			l.Error().Err(err).Msg("failed to handle merge requests")
 		}
 	}
 }
