@@ -51,4 +51,4 @@ Review bot (written in Go)
 - [ ] Statistics gathering (TODO)
 - [ ] Day off and vacation accounting (TODO)
 - [ ] Jira task status integration (TODO)
-- [x] Custom Review&Approve policies
+- [ ] Custom Review&Approve policies without rebuild
