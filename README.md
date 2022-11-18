@@ -46,7 +46,7 @@ Review bot (written in Go)
 - [x] Reviewers rotation
 - [x] Action on approved condition
 - [ ] Slack reviews reminder (TODO)
-    - [ ] Scheduled (e.g., after daily)
+    - [x] Scheduled (e.g., after daily)
     - [ ] On user request
 - [ ] Statistics gathering (TODO)
 - [ ] Day off and vacation accounting (TODO)
