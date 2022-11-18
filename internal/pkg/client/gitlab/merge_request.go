@@ -13,6 +13,7 @@ const (
 	maxPages = 10
 )
 
+// MergeRequestsByProject only last 1000 merge requests are processed
 func (c *Client) MergeRequestsByProject(projectID int) ([]*ds.MergeRequest, error) {
 	// TODO: consider using webhooks
 
@@ -85,6 +86,7 @@ func mergeRequestConvert(req *gitlab.MergeRequest) *ds.MergeRequest {
 		Reviewers:    reviewers,
 		Draft:        req.Draft,
 		SHA:          req.SHA,
+		URL:          req.WebURL,
 		UpdatedAt:    req.UpdatedAt,
 		CreatedAt:    req.CreatedAt,
 	}

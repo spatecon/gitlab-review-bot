@@ -21,7 +21,7 @@ import (
 
 const (
 	PolicyName ds.PolicyName = "reinventing_democracy"
-	// DevelopersCount number of developers to be picked
+	// DevelopersCount number of developers to be picked (also count of dev approves)
 	DevelopersCount = 2
 )
 
@@ -107,10 +107,7 @@ func (p *Policy) ProcessChanges(team *ds.Team, mr *ds.MergeRequest) (err error) 
 	// wasn't set before
 	if md.ReviewersSet {
 		// check for final approved
-		md.Approved, err = p.checkApproved(team, mr)
-		if err != nil {
-			return errors.Wrap(err, "failed to check for final approve")
-		}
+		md.Approved = p.IsApproved(team, mr)
 
 		return nil
 	}
@@ -134,9 +131,9 @@ func (p *Policy) setReviewers(team *ds.Team, mr *ds.MergeRequest) (bool, error) 
 	devs := ds.Developers(team.Members)
 
 	// without author
-	/*devs = lo.Filter(devs, func(user *ds.User, _ int) bool {
+	devs = lo.Filter(devs, func(user *ds.User, _ int) bool {
 		return user.GitLabID != mr.Author.GitLabID
-	})*/
+	})
 
 	// randomize
 	devs = lo.Shuffle(devs)
@@ -165,10 +162,14 @@ func (p *Policy) setReviewers(team *ds.Team, mr *ds.MergeRequest) (bool, error) 
 	return true, nil
 }
 
-func (p *Policy) checkApproved(team *ds.Team, mr *ds.MergeRequest) (bool, error) {
+func (p *Policy) IsApproved(team *ds.Team, mr *ds.MergeRequest) bool {
 	last := DevelopersCount
 
 	for _, user := range mr.Approves {
+		if user.GitLabID == mr.Author.GitLabID {
+			continue
+		}
+
 		teammate, ok := lo.Find(team.Members, func(member *ds.User) bool {
 			return member.GitLabID == user.GitLabID
 		})
@@ -184,12 +185,6 @@ func (p *Policy) checkApproved(team *ds.Team, mr *ds.MergeRequest) (bool, error)
 		last--
 	}
 
-	// not approved yet
-	if last > 0 {
-		return false, nil
-	}
-
-	// approved condition met
-
-	return true, nil
+	// approved condition
+	return last <= 0
 }

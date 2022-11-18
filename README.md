@@ -2,7 +2,8 @@
 
 A server application that observes GitLab merge requests (MR) and rotates reviews using custom Review&Approve policies.
 
-<img alt="Go" src="https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white"> <img alt="GitHub" src="https://img.shields.io/github/license/spatecon/gitlab-review-bot?color=blue&style=for-the-badge">
+<img alt="Go" src="https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white"> <img alt="GitHub" src="https://img.shields.io/github/license/spatecon/gitlab-review-bot?color=blue&style=for-the-badge"> <br>
+<img alt="gopher-in-glasses" src="docs/readme/assets/gopher.png" width="300">
 
 ## Situation
 

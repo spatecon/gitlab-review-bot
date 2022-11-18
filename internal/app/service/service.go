@@ -1,7 +1,11 @@
 package service
 
 import (
+	"context"
+	"time"
+
 	"github.com/pkg/errors"
+	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog/log"
 
 	"github.com/spatecon/gitlab-review-bot/internal/app/ds"
@@ -13,6 +17,8 @@ type Repository interface {
 	Projects() ([]*ds.Project, error)
 	MergeRequestByID(id int) (*ds.MergeRequest, error)
 	MergeRequestsByProject(projectID int) ([]*ds.MergeRequest, error)
+	MergeRequestsByAuthor(authorID []int) ([]*ds.MergeRequest, error)
+	MergeRequestsByReviewer(reviewerID []int) ([]*ds.MergeRequest, error)
 	UpsertMergeRequest(mr *ds.MergeRequest) error
 }
 
@@ -21,19 +27,27 @@ type GitlabClient interface {
 	MergeRequestApproves(projectID int, iid int) ([]*ds.BasicUser, error)
 }
 
+type SlackClient interface {
+	worker.SlackClient
+}
+
 type Worker interface {
+	Run()
 	Close()
 }
 
 type Policy interface {
 	ProcessChanges(team *ds.Team, mr *ds.MergeRequest) (err error)
+	IsApproved(team *ds.Team, mr *ds.MergeRequest) bool
 }
 
 type Service struct {
 	r        Repository
-	g        GitlabClient
+	gitlab   GitlabClient
+	slack    SlackClient
 	teams    []*ds.Team
 	policies map[ds.PolicyName]Policy
+	cron     *cron.Cron
 
 	workers []Worker
 }
@@ -41,7 +55,7 @@ type Service struct {
 func New(r Repository, g GitlabClient, p map[ds.PolicyName]Policy) (*Service, error) {
 	svc := &Service{
 		r:        r,
-		g:        g,
+		gitlab:   g,
 		policies: p,
 	}
 
@@ -49,6 +63,11 @@ func New(r Repository, g GitlabClient, p map[ds.PolicyName]Policy) (*Service, er
 	err := svc.loadTeams()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to pre-cache teams")
+	}
+
+	err = svc.initNotifications()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to init notifications")
 	}
 
 	return svc, nil
@@ -59,9 +78,20 @@ func (s *Service) Close() error {
 		wrk.Close()
 	}
 
-	return nil
+	cronCtx := s.cron.Stop()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	select {
+	case <-cronCtx.Done():
+		return nil
+	case <-ctx.Done():
+		return errors.New("cron stopped dirty by timeout")
+	}
 }
 
+// SubscribeOnProjects Creates workers for each project and subscribe on merge requests changes
 func (s *Service) SubscribeOnProjects() error {
 	projects, err := s.r.Projects()
 	if err != nil {
@@ -71,10 +101,12 @@ func (s *Service) SubscribeOnProjects() error {
 	for _, project := range projects {
 		var wrk Worker
 
-		wrk, err = worker.NewGitLabPuller(s.g, s.mergeRequestsHandler, project.ID)
+		wrk, err = worker.NewGitLabPuller(s.gitlab, s.mergeRequestsHandler, project.ID)
 		if err != nil {
 			return errors.Wrap(err, "failed to create gitlab puller")
 		}
+
+		wrk.Run()
 
 		s.workers = append(s.workers, wrk)
 	}
@@ -96,7 +128,7 @@ func (s *Service) mergeRequestsHandler(mr *ds.MergeRequest) error {
 	}
 
 	// enrich MR with approves
-	approves, err := s.g.MergeRequestApproves(mr.ProjectID, mr.IID)
+	approves, err := s.gitlab.MergeRequestApproves(mr.ProjectID, mr.IID)
 	if err != nil {
 		return errors.Wrap(err, "failed to fetch merge request approves")
 	}
