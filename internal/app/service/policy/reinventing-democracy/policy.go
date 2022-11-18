@@ -166,6 +166,10 @@ func (p *Policy) IsApproved(team *ds.Team, mr *ds.MergeRequest) bool {
 	last := DevelopersCount
 
 	for _, user := range mr.Approves {
+		if user.GitLabID == mr.Author.GitLabID {
+			continue
+		}
+
 		teammate, ok := lo.Find(team.Members, func(member *ds.User) bool {
 			return member.GitLabID == user.GitLabID
 		})

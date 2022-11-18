@@ -86,6 +86,7 @@ func mergeRequestConvert(req *gitlab.MergeRequest) *ds.MergeRequest {
 		Reviewers:    reviewers,
 		Draft:        req.Draft,
 		SHA:          req.SHA,
+		URL:          req.WebURL,
 		UpdatedAt:    req.UpdatedAt,
 		CreatedAt:    req.CreatedAt,
 	}

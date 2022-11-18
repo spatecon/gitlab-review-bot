@@ -33,12 +33,10 @@ func NewGitLabPuller(gitlab GitlabClient, handler MergeRequestHandler, projectID
 		close:      make(chan struct{}),
 	}
 
-	worker.Start()
-
 	return worker, nil
 }
 
-func (g *GitLabPuller) Start() {
+func (g *GitLabPuller) Run() {
 	go func() {
 		ticker := time.NewTicker(g.pullPeriod)
 		startup := time.NewTimer(5 * time.Second)

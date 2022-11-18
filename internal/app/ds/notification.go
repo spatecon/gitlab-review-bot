@@ -14,6 +14,8 @@ func (n NotificationSettings) IsEmpty() bool {
 
 // UserNotification is a set of variables that can be used in user notification templates.
 type UserNotification struct {
+	// User is a user that will receive a notification
+	User *User
 	// AuthoredMR list of merge requests in review that were authored by the user.
 	AuthoredMR []*MergeRequest
 	// ReviewerMR list of merge requests that should be reviewed.
@@ -22,6 +24,8 @@ type UserNotification struct {
 
 // ChannelNotification is a set of variables that can be used in channel notification templates.
 type ChannelNotification struct {
+	// Team is a team that will receive a notification
+	Team *Team
 	// AverageCount of MRs per developer/member
 	AverageCount int
 	// TotalCount of uniq MRs in review state

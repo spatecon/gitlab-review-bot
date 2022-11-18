@@ -1,3 +1,5 @@
+//go:generate mockgen -source=notification.go -destination=mocks/notification.go -package=mocks -mock_names=Policy=NotificationPolicy,SlackClient=NotificationSlackClient,Repository=NotificationRepository
+
 package worker
 
 import (
@@ -12,6 +14,8 @@ import (
 
 	"github.com/spatecon/gitlab-review-bot/internal/app/ds"
 )
+
+const notificationWorkerName = "notification_worker"
 
 type Policy interface {
 	IsApproved(team *ds.Team, mr *ds.MergeRequest) bool
@@ -48,7 +52,10 @@ type SlackMessage struct {
 }
 
 func (n *Notifications) Run() {
-	l := log.With().Str("team", n.team.Name).Str("module", "notifications_worker").Logger()
+	l := log.With().
+		Str("worker", notificationWorkerName).
+		Str("team_id", n.team.ID).
+		Logger()
 
 	devs := ds.Developers(n.team.Members)
 
@@ -88,6 +95,10 @@ func (n *Notifications) getMergeRequests(devs []*ds.User) (
 	authorToMR = make(map[int][]*ds.MergeRequest, len(authoredMRs))
 	for _, mr := range authoredMRs {
 		if n.policy.IsApproved(n.team, mr) {
+			continue
+		}
+
+		if mr.Author == nil {
 			continue
 		}
 
@@ -131,6 +142,7 @@ func (n *Notifications) slackMessages(
 	}
 
 	summary := ds.ChannelNotification{
+		Team:          n.team,
 		AverageCount:  0,
 		TotalCount:    0,
 		LastEditedMR:  nil,
@@ -142,7 +154,9 @@ func (n *Notifications) slackMessages(
 
 	for _, dev := range devs {
 		if dev.SlackID == "" {
-			l.Warn().Str("user", dev.Name).Msg("skipping user without Slack ID")
+			l.Warn().
+				Str("user", dev.Name).
+				Msg("skipping user without Slack ID")
 			continue
 		}
 
@@ -162,11 +176,15 @@ func (n *Notifications) slackMessages(
 		}
 
 		err = userTemplate.Execute(msg, ds.UserNotification{
+			User:       dev,
 			AuthoredMR: authorToMRs,
 			ReviewerMR: reviewerToMR[dev.GitLabID],
 		})
 		if err != nil {
-			l.Error().Err(err).Str("user", dev.Name).Msg("failed to execute user notification template")
+			l.Error().
+				Err(err).
+				Int("user_gitlab_id", dev.GitLabID).
+				Msg("failed to execute user notification template")
 			continue
 		}
 

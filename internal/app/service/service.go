@@ -32,6 +32,7 @@ type SlackClient interface {
 }
 
 type Worker interface {
+	Run()
 	Close()
 }
 
@@ -104,6 +105,8 @@ func (s *Service) SubscribeOnProjects() error {
 		if err != nil {
 			return errors.Wrap(err, "failed to create gitlab puller")
 		}
+
+		wrk.Run()
 
 		s.workers = append(s.workers, wrk)
 	}
