@@ -1,3 +1,5 @@
+//go:build mongodb
+
 package repository
 
 import (
@@ -12,7 +14,7 @@ import (
 func TestRepository_MergeRequests(t *testing.T) {
 	rep := repositoryHelper(t)
 
-	t.Run("should return empty list", func(t *testing.T) {
+	t.Run("empty collection", func(t *testing.T) {
 		mr, err := rep.MergeRequestByID(1)
 		require.NoError(t, err, "failed to get merge requests")
 		require.Nil(t, mr, "merge requests should be not found")
@@ -39,12 +41,24 @@ func TestRepository_MergeRequests(t *testing.T) {
 		Approves:     []*ds.BasicUser{{GitLabID: 17, Name: "18"}},
 	}
 
-	t.Run("creates a merge request", func(t *testing.T) {
+	t.Run("create a merge request", func(t *testing.T) {
 		err := rep.UpsertMergeRequest(mr1)
 		require.NoError(t, err, "failed to create merge request")
 	})
 
 	t.Run("should return created merge request", func(t *testing.T) {
+		mr, err := rep.MergeRequestByID(1)
+		require.NoError(t, err, "failed to get merge requests")
+		require.EqualValues(t, mr1, mr, "merge requests should be equal")
+	})
+
+	t.Run("updates a merge request", func(t *testing.T) {
+		mr1.Title = "new title"
+		err := rep.UpsertMergeRequest(mr1)
+		require.NoError(t, err, "failed to update merge request")
+	})
+
+	t.Run("should return updated merge request", func(t *testing.T) {
 		mr, err := rep.MergeRequestByID(1)
 		require.NoError(t, err, "failed to get merge requests")
 		require.EqualValues(t, mr1, mr, "merge requests should be equal")
