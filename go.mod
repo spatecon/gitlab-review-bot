@@ -12,7 +12,7 @@ require (
 	github.com/samber/lo v1.35.0
 	github.com/slack-go/slack v0.11.4
 	github.com/stretchr/testify v1.8.1
-	github.com/xanzy/go-gitlab v0.74.0
+	github.com/xanzy/go-gitlab v0.76.0
 	github.com/zyedidia/generic v1.2.0
 	go.mongodb.org/mongo-driver v1.11.0
 	go.uber.org/ratelimit v0.2.0
