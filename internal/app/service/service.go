@@ -1,3 +1,4 @@
+//go:generate mockgen -source=service.go -destination=mocks/service.go -package=mocks -mock_names=Policy=Policy,SlackClient=SlackClient,Repository=Repository,GitlabClient=GitlabClient
 package service
 
 import (
@@ -20,6 +21,7 @@ type Repository interface {
 	MergeRequestsByAuthor(authorID []int) ([]*ds.MergeRequest, error)
 	MergeRequestsByReviewer(reviewerID []int) ([]*ds.MergeRequest, error)
 	UpsertMergeRequest(mr *ds.MergeRequest) error
+	UserBySlackID(slackID string) (*ds.User, *ds.Team, error)
 }
 
 type GitlabClient interface {
@@ -29,6 +31,7 @@ type GitlabClient interface {
 
 type SlackClient interface {
 	worker.SlackClient
+	Subscribe() (chan ds.UserEvent, error)
 }
 
 type Worker interface {
@@ -52,10 +55,11 @@ type Service struct {
 	workers []Worker
 }
 
-func New(r Repository, g GitlabClient, p map[ds.PolicyName]Policy) (*Service, error) {
+func New(r Repository, g GitlabClient, p map[ds.PolicyName]Policy, slack SlackClient) (*Service, error) {
 	svc := &Service{
 		r:        r,
 		gitlab:   g,
+		slack:    slack,
 		policies: p,
 	}
 
@@ -91,8 +95,26 @@ func (s *Service) Close() error {
 	}
 }
 
+func (s *Service) SubscribeOnSlack() error {
+	events, err := s.slack.Subscribe()
+	if err != nil {
+		return errors.Wrap(err, "failed to subscribe on slack events")
+	}
+
+	wrk := worker.NewSlackWorker(s, s.r, s.slack, events)
+	go wrk.Run()
+
+	s.workers = append(s.workers, wrk)
+
+	return nil
+}
+
 // SubscribeOnProjects Creates workers for each project and subscribe on merge requests changes
-func (s *Service) SubscribeOnProjects() error {
+func (s *Service) SubscribeOnProjects(pullPeriod time.Duration) error {
+	if pullPeriod < time.Second {
+		return errors.Errorf("pull period is too small: %s", pullPeriod)
+	}
+
 	projects, err := s.r.Projects()
 	if err != nil {
 		return err
@@ -101,7 +123,7 @@ func (s *Service) SubscribeOnProjects() error {
 	for _, project := range projects {
 		var wrk Worker
 
-		wrk, err = worker.NewGitLabPuller(s.gitlab, s.mergeRequestsHandler, project.ID)
+		wrk, err = worker.NewGitLabPuller(pullPeriod, s.gitlab, s.mergeRequestsHandler, project.ID)
 		if err != nil {
 			return errors.Wrap(err, "failed to create gitlab puller")
 		}
@@ -123,7 +145,10 @@ func (s *Service) mergeRequestsHandler(mr *ds.MergeRequest) error {
 
 	// if no changes, do nothing
 	if old != nil && old.IsEqual(mr) {
-		log.Info().Int("id", mr.ID).Msg("mr skipped")
+		log.Info().
+			Int("project_id", mr.ProjectID).
+			Int("iid", mr.IID).
+			Msg("mr skipped")
 		return nil
 	}
 
@@ -141,7 +166,11 @@ func (s *Service) mergeRequestsHandler(mr *ds.MergeRequest) error {
 		return errors.Wrap(err, "failed to update merge request in repository")
 	}
 
-	log.Info().Int("id", mr.ID).Msg("mr updated or created")
+	log.Info().
+		Int("project_id", mr.ProjectID).
+		Int("iid", mr.IID).
+		Str("url", mr.URL).
+		Msg("mr updated or created")
 
 	// process MR
 

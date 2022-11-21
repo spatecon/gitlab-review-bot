@@ -45,10 +45,10 @@ Review bot (written in Go)
 
 - [x] Reviewers rotation
 - [x] Action on approved condition
-- [ ] Slack reviews reminder (TODO)
+- [x] Slack reviews reminder
     - [x] Scheduled (e.g., after daily)
-    - [ ] On user request
-- [ ] Statistics gathering (TODO)
-- [ ] Day off and vacation accounting (TODO)
-- [ ] Jira task status integration (TODO)
+    - [x] On user request (`/mr` command)
+- [ ] Statistics gathering
+- [ ] Jira task status integration
 - [ ] Custom Review&Approve policies without rebuild
+- [ ] Day off and vacation accounting

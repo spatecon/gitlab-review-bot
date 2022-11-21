@@ -10,7 +10,6 @@ import (
 
 const (
 	gitlabPullerWorkerName = "gitlab_puller_worker"
-	pullPeriod             = 5 * time.Minute
 )
 
 type GitlabClient interface {
@@ -27,7 +26,7 @@ type GitLabPuller struct {
 	close      chan struct{}
 }
 
-func NewGitLabPuller(gitlab GitlabClient, handler MergeRequestHandler, projectID int) (*GitLabPuller, error) {
+func NewGitLabPuller(pullPeriod time.Duration, gitlab GitlabClient, handler MergeRequestHandler, projectID int) (*GitLabPuller, error) {
 	worker := &GitLabPuller{
 		gitlab:     gitlab,
 		handler:    handler,
@@ -80,6 +79,8 @@ func (g *GitLabPuller) pullAndHandle() {
 			l.Error().Err(err).Msg("failed to handle merge requests")
 		}
 	}
+
+	log.Info().Int("project_id", g.projectID).Msg("MRs handled")
 }
 
 func (g *GitLabPuller) Close() {

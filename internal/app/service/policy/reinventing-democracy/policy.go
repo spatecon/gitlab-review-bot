@@ -55,24 +55,32 @@ type metadata struct {
 	ReviewersSet bool `bson:"reviewers_set"`
 }
 
-func (p *Policy) ProcessChanges(team *ds.Team, mr *ds.MergeRequest) (err error) {
+func (p *Policy) skip(mr *ds.MergeRequest, team *ds.Team) bool {
 	// belongs to the team
 	if !team.Teammate(mr.Author) {
-		return nil
+		return true
 	}
 
 	// skip closed, merged, locked
 	if mr.State != ds.StateOpened {
-		return nil
+		return true
 	}
 
 	// not a draft
 	if mr.Draft {
-		return nil
+		return true
 	}
 
 	// not a release branch
 	if strings.Contains(mr.SourceBranch, "release/") {
+		return true
+	}
+
+	return false
+}
+
+func (p *Policy) ProcessChanges(team *ds.Team, mr *ds.MergeRequest) (err error) {
+	if p.skip(mr, team) {
 		return nil
 	}
 
@@ -163,6 +171,10 @@ func (p *Policy) setReviewers(team *ds.Team, mr *ds.MergeRequest) (bool, error) 
 }
 
 func (p *Policy) IsApproved(team *ds.Team, mr *ds.MergeRequest) bool {
+	if p.skip(mr, team) {
+		return true // it means that it was already approved or didn't meet "need approve" state yet
+	}
+
 	last := DevelopersCount
 
 	for _, user := range mr.Approves {

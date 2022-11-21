@@ -75,7 +75,12 @@ func (a *App) Run() error {
 
 	a.logger.Info().Msg("app started")
 
-	err = a.service.SubscribeOnProjects()
+	err = a.service.SubscribeOnSlack()
+	if err != nil {
+		return errors.Wrap(err, "failed to subscribe on slack events")
+	}
+
+	err = a.service.SubscribeOnProjects(a.cfg.PullPeriod)
 	if err != nil {
 		return errors.Wrap(err, "failed to subscribe on projects")
 	}

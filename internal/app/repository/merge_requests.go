@@ -51,7 +51,7 @@ func (r *Repository) MergeRequestsByAuthor(authorID []int) ([]*ds.MergeRequest, 
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
 	defer cancel()
 
-	cursor, err := r.mergeRequests.Find(ctx, bson.D{{"author.gitlab_id", authorID}})
+	cursor, err := r.mergeRequests.Find(ctx, bson.D{{"author.gitlab_id", bson.M{"$in": authorID}}})
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find merge requests")
 	}

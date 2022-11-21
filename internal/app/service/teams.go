@@ -35,7 +35,7 @@ func (s *Service) initNotifications() error {
 			continue
 		}
 
-		policy, ok := s.policies[team.Policy]
+		_, ok := s.policies[team.Policy]
 		if !ok {
 			log.Warn().
 				Str("policy", string(team.Policy)).
@@ -44,7 +44,7 @@ func (s *Service) initNotifications() error {
 			continue
 		}
 
-		wrk := worker.NewNotificationsWorker(team, policy, s.r, s.slack)
+		wrk := worker.NewNotificationsWorker(team, s, s.slack)
 
 		_, err := s.cron.AddJob(team.Notifications.Cron, wrk)
 		if err != nil {

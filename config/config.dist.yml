@@ -6,7 +6,8 @@ human_readable_log: true
 # It is recommended to use separate user for the bot.
 gitlab_token: ${GITLAB_TOKEN} # ref: https://gitlab.com/-/profile/personal_access_tokens
 
-slack_token: ${SLACK_TOKEN} # ref: https://api.slack.com/authentication/token-types#bot
+slack_bot_token: ${SLACK_BOT_TOKEN} # ref: https://api.slack.com/authentication/token-types#bot
+slack_app_token: ${SLACK_APP_TOKEN} # ref: https://api.slack.com/authentication/token-types#app
 
 # Database connection.
 mongo:
@@ -15,3 +16,6 @@ mongo:
   user: ${MONGO_USER}
   pass: ${MONGO_PASS}
   db: ${MONGO_DB}
+
+# How often the bot should scan through all MRs
+pull_period: 14m30s

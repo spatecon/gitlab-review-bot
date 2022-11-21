@@ -1,14 +1,15 @@
-package worker_test
+package service_test
 
 import (
 	"testing"
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/spatecon/gitlab-review-bot/internal/app/ds"
-	"github.com/spatecon/gitlab-review-bot/internal/app/service/worker"
-	"github.com/spatecon/gitlab-review-bot/internal/app/service/worker/mocks"
+	"github.com/spatecon/gitlab-review-bot/internal/app/service"
+	"github.com/spatecon/gitlab-review-bot/internal/app/service/mocks"
 	"github.com/spatecon/gitlab-review-bot/pkg/testloggger"
 )
 
@@ -30,7 +31,7 @@ var (
 	}
 )
 
-func TestNotifications_Run(t *testing.T) {
+func TestNotificationsService(t *testing.T) {
 	ctrl := gomock.NewController(t)
 
 	testloggger.Set(t)
@@ -121,13 +122,17 @@ func TestNotifications_Run(t *testing.T) {
 		},
 	}
 
-	policy := mocks.NewNotificationPolicy(ctrl)
+	policy := mocks.NewPolicy(ctrl)
 	policy.EXPECT().
 		IsApproved(team, gomock.Any()).
 		Return(false).
 		MinTimes(1)
 
-	repository := mocks.NewNotificationRepository(ctrl)
+	repository := mocks.NewRepository(ctrl)
+	repository.EXPECT().
+		Teams().
+		Return([]*ds.Team{}, nil).
+		MinTimes(1)
 	repository.EXPECT().
 		MergeRequestsByAuthor(gomock.InAnyOrder([]int{John.GitLabID, Gordon.GitLabID})).
 		Return([]*ds.MergeRequest{MR1, MR2, MR3}, nil).
@@ -137,23 +142,45 @@ func TestNotifications_Run(t *testing.T) {
 		Return([]*ds.MergeRequest{MR2, MR3, MR4}, nil).
 		Times(1)
 
-	slackClient := mocks.NewNotificationSlackClient(ctrl)
+	svc, svcErr := service.New(repository, nil, map[ds.PolicyName]service.Policy{
+		"test_policy": policy,
+	}, nil)
+	require.NoError(t, svcErr, "service.New() failed")
 
-	exceptedJohnMessage := `John Snow has 2 MRs waiting for review. Also, John Snow has 2 authored MRs in review.`
-	slackClient.EXPECT().
-		SendMessage(gomock.Eq("XJFAAAAAAAAA"), gomock.Eq(exceptedJohnMessage)).
-		Return(nil)
+	var (
+		authorToMRs, reviewerToMRs map[int][]*ds.MergeRequest
+		err                        error
+	)
 
-	exceptedGordonMessage := `Gordon Freeman has 2 MRs waiting for review. Also, Gordon Freeman has 1 authored MRs in review.`
-	slackClient.EXPECT().
-		SendMessage(gomock.Eq("XJFBBBBBBBBB"), gomock.Eq(exceptedGordonMessage)).
-		Return(nil)
+	t.Run("GetAuthoredReviewedMRs", func(t *testing.T) {
+		authorToMRs, reviewerToMRs, err = svc.GetAuthoredReviewedMRs(team, ds.Developers(team.Members))
+		require.NoError(t, err, "GetAuthoredReviewedMRs() failed")
+		require.EqualValues(t, map[int][]*ds.MergeRequest{
+			John.GitLabID:   {MR1, MR2},
+			Gordon.GitLabID: {MR3},
+		}, authorToMRs, "authored MRs are not equal")
+		require.EqualValues(t, map[int][]*ds.MergeRequest{
+			Jane.GitLabID:   {MR2},
+			John.GitLabID:   {MR3, MR4},
+			Gordon.GitLabID: {MR2, MR4},
+		}, reviewerToMRs, "reviewed MRs are not equal")
+	})
 
-	exceptedChanMessage := `There are 3 MRs waiting for review. Members of Test Team have an average of 2 MRs waiting for review.`
-	slackClient.EXPECT().
-		SendMessage(gomock.Eq("XCCCCCCCCCCC"), gomock.Eq(exceptedChanMessage)).
-		Return(nil)
+	t.Run("John message", func(t *testing.T) {
+		actual, err := svc.UserNotification(team.Members[0], team, authorToMRs, reviewerToMRs)
+		require.NoError(t, err, "UserNotification() failed")
+		require.Equal(t, `John Snow has 2 MRs waiting for review. Also, John Snow has 2 authored MRs in review.`, actual)
+	})
 
-	notificationsWorker := worker.NewNotificationsWorker(team, policy, repository, slackClient)
-	notificationsWorker.Run()
+	t.Run("Gordon message", func(t *testing.T) {
+		actual, err := svc.UserNotification(team.Members[1], team, authorToMRs, reviewerToMRs)
+		require.NoError(t, err, "UserNotification() failed")
+		require.Equal(t, `Gordon Freeman has 2 MRs waiting for review. Also, Gordon Freeman has 1 authored MRs in review.`, actual)
+	})
+
+	t.Run("Channel message", func(t *testing.T) {
+		actual, err := svc.TeamNotification(team, authorToMRs, reviewerToMRs)
+		require.NoError(t, err, "TeamNotification() failed")
+		require.Equal(t, `There are 3 MRs waiting for review. Members of Test Team have an average of 2 MRs waiting for review.`, actual)
+	})
 }

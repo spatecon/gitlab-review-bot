@@ -20,7 +20,7 @@ func (a *App) initPolicies() error {
 func (a *App) initService() error {
 	var err error
 
-	a.service, err = service.New(a.repository, a.gitlabClient, a.policies)
+	a.service, err = service.New(a.repository, a.gitlabClient, a.policies, a.slackClient)
 	if err != nil {
 		return errors.Wrap(err, "failed to init service")
 	}

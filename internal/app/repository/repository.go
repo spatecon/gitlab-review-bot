@@ -50,7 +50,7 @@ func (r *Repository) createIndexes() error {
 	_, err := r.mergeRequests.Indexes().CreateMany(ctx,
 		[]mongo.IndexModel{
 			{
-				Keys:    bson.D{{"iid", 1}, {"project", 1}},
+				Keys:    bson.D{{"iid", 1}, {"project_id", 1}},
 				Options: options.Index().SetUnique(true),
 			},
 			{
