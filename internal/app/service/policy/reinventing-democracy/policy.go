@@ -146,6 +146,7 @@ func (p *Policy) setReviewers(team *ds.Team, mr *ds.MergeRequest) (bool, error) 
 	// randomize
 	devs = lo.Shuffle(devs)
 
+	//TODO: not set developers that already set as reviewers and take it into account when counting efficientReviewersCount
 	efficientReviewersCount := 0
 
 	for i, dev := range devs {
@@ -170,9 +171,24 @@ func (p *Policy) setReviewers(team *ds.Team, mr *ds.MergeRequest) (bool, error) 
 	return true, nil
 }
 
-func (p *Policy) IsApproved(team *ds.Team, mr *ds.MergeRequest) bool {
+func (p *Policy) IsApproved(team *ds.Team, mr *ds.MergeRequest, byAll ...*ds.BasicUser) bool {
 	if p.skip(mr, team) {
-		return true // it means that it was already approved or didn't meet "need approve" state yet
+		// true means the MR was already approved
+		// or didn't meet "need approve" state yet
+		return true
+	}
+
+	if len(byAll) > 0 {
+		allNeeded := set.NewMapset[int]()
+		for _, user := range byAll {
+			allNeeded.Put(user.GitLabID)
+		}
+
+		for _, user := range mr.Approves {
+			allNeeded.Remove(user.GitLabID)
+		}
+
+		return allNeeded.Size() == 0 // all passed users approved the merge request
 	}
 
 	last := DevelopersCount

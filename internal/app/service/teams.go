@@ -53,5 +53,7 @@ func (s *Service) initNotifications() error {
 		}
 	}
 
+	s.cron.Start()
+
 	return nil
 }

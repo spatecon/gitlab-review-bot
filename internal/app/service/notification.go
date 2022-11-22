@@ -10,6 +10,7 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/spatecon/gitlab-review-bot/internal/app/ds"
+	"github.com/spatecon/gitlab-review-bot/pkg/templating"
 )
 
 func (s *Service) GetAuthoredReviewedMRs(team *ds.Team, users []*ds.User) (authorToMR, reviewerToMR map[int][]*ds.MergeRequest, err error) {
@@ -27,11 +28,11 @@ func (s *Service) GetAuthoredReviewedMRs(team *ds.Team, users []*ds.User) (autho
 
 	authorToMR = make(map[int][]*ds.MergeRequest, len(authoredMRs))
 	for _, mr := range authoredMRs {
-		if policy.IsApproved(team, mr) {
+		if mr.Author == nil {
 			continue
 		}
 
-		if mr.Author == nil {
+		if policy.IsApproved(team, mr) {
 			continue
 		}
 
@@ -47,11 +48,11 @@ func (s *Service) GetAuthoredReviewedMRs(team *ds.Team, users []*ds.User) (autho
 
 	reviewerToMR = make(map[int][]*ds.MergeRequest, len(toReviewMRs))
 	for _, mr := range toReviewMRs {
-		if policy.IsApproved(team, mr) {
-			continue
-		}
-
 		for _, reviewer := range mr.Reviewers {
+			if policy.IsApproved(team, mr, reviewer) {
+				continue
+			}
+
 			reviewerToMR[reviewer.GitLabID] = append(reviewerToMR[reviewer.GitLabID], mr)
 		}
 	}
@@ -60,7 +61,10 @@ func (s *Service) GetAuthoredReviewedMRs(team *ds.Team, users []*ds.User) (autho
 }
 
 func (s *Service) UserNotification(user *ds.User, team *ds.Team, authorToMR, reviewerToMR map[int][]*ds.MergeRequest) (message string, err error) {
-	userTemplate, err := template.New("user_notification").Parse(team.Notifications.UserTemplate)
+	// TODO: optimize initializations for performance
+	userTemplate := template.New("user_notification").Funcs(s.templateFuncMap(team.Notifications.Locale))
+
+	userTemplate, err = userTemplate.Parse(team.Notifications.UserTemplate)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to parse user template")
 	}
@@ -80,7 +84,9 @@ func (s *Service) UserNotification(user *ds.User, team *ds.Team, authorToMR, rev
 }
 
 func (s *Service) TeamNotification(team *ds.Team, authorToMR, reviewerToMR map[int][]*ds.MergeRequest) (message string, err error) {
-	channelTemplate, err := template.New("team_notification").Parse(team.Notifications.ChannelTemplate)
+	channelTemplate := template.New("team_notification").Funcs(s.templateFuncMap(team.Notifications.Locale))
+
+	channelTemplate, err = channelTemplate.Parse(team.Notifications.ChannelTemplate)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to parse team template")
 	}
@@ -128,4 +134,19 @@ func (s *Service) TeamNotification(team *ds.Team, authorToMR, reviewerToMR map[i
 	}
 
 	return chanMsg.String(), nil
+}
+
+func (s *Service) templateFuncMap(locale string) template.FuncMap {
+	loc, ok := templating.ParseLocale(locale)
+
+	if !ok {
+		log.Warn().Str("locale", locale).Msg("failed to parse locale, using default (en_EN)")
+	}
+
+	tools := templating.NewTools(loc)
+
+	return template.FuncMap{
+		"since":  tools.Since,
+		"plural": tools.Plural,
+	}
 }

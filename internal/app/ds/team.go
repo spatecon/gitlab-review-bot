@@ -1,5 +1,7 @@
 package ds
 
+import "time"
+
 type PolicyName string
 
 type Team struct {
@@ -8,6 +10,7 @@ type Team struct {
 	Members       []*User              `bson:"members"`
 	Policy        PolicyName           `bson:"policy"`
 	Notifications NotificationSettings `bson:"notifications"`
+	CreatedAt     time.Time            `bson:"created_at"`
 }
 
 // Teammate checks if user is a member of a team

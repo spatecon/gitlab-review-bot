@@ -1,6 +1,8 @@
 package gitlab
 
 import (
+	"time"
+
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	"github.com/xanzy/go-gitlab"
@@ -9,12 +11,12 @@ import (
 )
 
 const (
-	perPage  = 100 // 100 max
+	perPage  = 100 // 100 is api max
 	maxPages = 10
 )
 
 // MergeRequestsByProject only last 1000 merge requests are processed
-func (c *Client) MergeRequestsByProject(projectID int) ([]*ds.MergeRequest, error) {
+func (c *Client) MergeRequestsByProject(projectID int, createdAfter time.Time) ([]*ds.MergeRequest, error) {
 	// TODO: consider using webhooks
 
 	allMergeRequests := make([]*ds.MergeRequest, 0, perPage)
@@ -25,6 +27,7 @@ func (c *Client) MergeRequestsByProject(projectID int) ([]*ds.MergeRequest, erro
 		mergeRequests, resp, err := c.gitlab.MergeRequests.ListProjectMergeRequests(
 			projectID,
 			&gitlab.ListProjectMergeRequestsOptions{
+				CreatedAfter: &createdAfter,
 				ListOptions: gitlab.ListOptions{
 					Page:    i,
 					PerPage: perPage,

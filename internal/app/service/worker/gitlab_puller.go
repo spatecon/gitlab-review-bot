@@ -13,7 +13,7 @@ const (
 )
 
 type GitlabClient interface {
-	MergeRequestsByProject(projectID int) ([]*ds.MergeRequest, error)
+	MergeRequestsByProject(projectID int, createdAfter time.Time) ([]*ds.MergeRequest, error)
 }
 
 type MergeRequestHandler func(mr *ds.MergeRequest) error
@@ -24,14 +24,16 @@ type GitLabPuller struct {
 	projectID  int
 	pullPeriod time.Duration
 	close      chan struct{}
+	after      time.Time
 }
 
-func NewGitLabPuller(pullPeriod time.Duration, gitlab GitlabClient, handler MergeRequestHandler, projectID int) (*GitLabPuller, error) {
+func NewGitLabPuller(pullPeriod time.Duration, after time.Time, gitlab GitlabClient, handler MergeRequestHandler, projectID int) (*GitLabPuller, error) {
 	worker := &GitLabPuller{
 		gitlab:     gitlab,
 		handler:    handler,
 		projectID:  projectID,
 		pullPeriod: pullPeriod,
+		after:      after,
 		close:      make(chan struct{}),
 	}
 
@@ -64,14 +66,16 @@ func (g *GitLabPuller) pullAndHandle() {
 		Int("project_id", g.projectID).
 		Logger()
 
-	mrs, err := g.gitlab.MergeRequestsByProject(g.projectID)
+	l.Info().Msg("pulling merge requests")
+
+	mrs, err := g.gitlab.MergeRequestsByProject(g.projectID, g.after)
 	if err != nil {
 		l.Error().Err(err).Msg("failed to fetch merge requests")
 	}
 
 	l.Info().Int("project_id", g.projectID).
 		Int("count", len(mrs)).
-		Msg("fetched merge requests")
+		Msg("pulled merge requests successfully")
 
 	for _, mr := range mrs {
 		err = g.handler(mr)
@@ -80,7 +84,7 @@ func (g *GitLabPuller) pullAndHandle() {
 		}
 	}
 
-	log.Info().Int("project_id", g.projectID).Msg("MRs handled")
+	log.Info().Int("project_id", g.projectID).Msg("merge requests handled")
 }
 
 func (g *GitLabPuller) Close() {

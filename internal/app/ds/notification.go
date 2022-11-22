@@ -6,6 +6,7 @@ type NotificationSettings struct {
 	UserTemplate    string `bson:"user_template"`
 	ChannelID       string `bson:"channel_id"`
 	ChannelTemplate string `bson:"channel_template"`
+	Locale          string `bson:"locale"`
 }
 
 func (n NotificationSettings) IsEmpty() bool {

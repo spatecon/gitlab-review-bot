@@ -330,17 +330,22 @@ func (m *Policy) EXPECT() *PolicyMockRecorder {
 }
 
 // IsApproved mocks base method.
-func (m *Policy) IsApproved(team *ds.Team, mr *ds.MergeRequest) bool {
+func (m *Policy) IsApproved(team *ds.Team, mr *ds.MergeRequest, byAll ...*ds.BasicUser) bool {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsApproved", team, mr)
+	varargs := []interface{}{team, mr}
+	for _, a := range byAll {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "IsApproved", varargs...)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
 // IsApproved indicates an expected call of IsApproved.
-func (mr_2 *PolicyMockRecorder) IsApproved(team, mr interface{}) *gomock.Call {
+func (mr_2 *PolicyMockRecorder) IsApproved(team, mr interface{}, byAll ...interface{}) *gomock.Call {
 	mr_2.mock.ctrl.T.Helper()
-	return mr_2.mock.ctrl.RecordCallWithMethodType(mr_2.mock, "IsApproved", reflect.TypeOf((*Policy)(nil).IsApproved), team, mr)
+	varargs := append([]interface{}{team, mr}, byAll...)
+	return mr_2.mock.ctrl.RecordCallWithMethodType(mr_2.mock, "IsApproved", reflect.TypeOf((*Policy)(nil).IsApproved), varargs...)
 }
 
 // ProcessChanges mocks base method.
