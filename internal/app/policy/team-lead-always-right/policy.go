@@ -2,9 +2,9 @@ package reinventing_democracy
 
 /**
 
-Policy:					Reinventing Democracy
-Reviewers Rotation:		random pick 2 developers from the team
-Final Approve:			2 approves from the team
+Policy:					TeamLead Always Right
+Reviewers Rotation:		random pick 1 lead and 1 developer from the team
+Final Approve:			1 lead approve
 
 */
 
@@ -20,9 +20,11 @@ import (
 )
 
 const (
-	PolicyName ds.PolicyName = "rd"
-	// RequiredDevelopersCount number of developers to be picked (also count of dev approves)
-	RequiredDevelopersCount = 2
+	PolicyName ds.PolicyName = "tlar"
+	// RequiredLeadsCount number of lead to be picked as reviewers (also count of lead approves)
+	RequiredLeadsCount = 1
+	// RequiredDevelopersCount number of developers to be picked as reviewers
+	RequiredDevelopersCount = 1
 )
 
 type Repository interface {
@@ -134,10 +136,11 @@ func (p *Policy) setReviewers(team *ds.Team, mr *ds.MergeRequest, md *metadata) 
 	md.ReviewersSet = true
 
 	reviewersSet := set.NewMapset[int]()
-
 	for _, reviewer := range mr.Reviewers {
 		reviewersSet.Put(reviewer.GitLabID)
 	}
+
+	// developers pick
 
 	devs := ds.Developers(team.Members)
 
@@ -157,11 +160,6 @@ func (p *Policy) setReviewers(team *ds.Team, mr *ds.MergeRequest, md *metadata) 
 	// count of developers which needed to set as reviewers
 	needDevsCount := RequiredDevelopersCount - inner.Size()
 
-	// if we have enough reviewers from developers
-	if needDevsCount <= 0 {
-		return nil
-	}
-
 	// developers who are not reviewers
 	notPickedDevsSet := developersSet.Difference(reviewersSet)
 	notPickedDevs := lo.Shuffle(notPickedDevsSet.Keys())
@@ -175,6 +173,41 @@ func (p *Policy) setReviewers(team *ds.Team, mr *ds.MergeRequest, md *metadata) 
 
 		reviewersSet.Put(dev)
 		needDevsCount--
+	}
+
+	// leads pick
+
+	leads := ds.Leads(team.Members)
+
+	// without author
+	leads = lo.Filter(leads, func(user *ds.User, _ int) bool {
+		return user.GitLabID != mr.Author.GitLabID
+	})
+
+	leadsSet := set.NewMapset[int]()
+	for _, dev := range leads {
+		leadsSet.Put(dev.GitLabID)
+	}
+
+	// leads who are reviewers
+	inner = reviewersSet.Intersection(leadsSet)
+
+	// count of leads which needed to set as reviewers
+	needLeadsCount := RequiredLeadsCount - inner.Size()
+
+	// leads who are not reviewers
+	notPickedLeadsSet := leadsSet.Difference(reviewersSet)
+	notPickedLeads := lo.Shuffle(notPickedLeadsSet.Keys())
+
+	for _, lead := range notPickedLeads {
+		if needLeadsCount <= 0 {
+			break
+		}
+
+		md.ReviewersByPolicy = append(md.ReviewersByPolicy, lead)
+
+		reviewersSet.Put(lead)
+		needLeadsCount--
 	}
 
 	err := p.g.SetReviewers(mr, reviewersSet.Keys())
@@ -217,7 +250,7 @@ func (p *Policy) ApprovedByPolicy(team *ds.Team, mr *ds.MergeRequest) bool {
 		return true
 	}
 
-	left := RequiredDevelopersCount
+	left := RequiredLeadsCount
 
 	for _, user := range mr.Approves {
 		if user.GitLabID == mr.Author.GitLabID {
@@ -232,7 +265,7 @@ func (p *Policy) ApprovedByPolicy(team *ds.Team, mr *ds.MergeRequest) bool {
 			continue
 		}
 
-		if !teammate.Labels.Has(ds.DeveloperLabel) {
+		if !teammate.Labels.Has(ds.LeadLabel) {
 			continue
 		}
 
