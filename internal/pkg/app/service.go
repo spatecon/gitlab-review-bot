@@ -4,15 +4,16 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/spatecon/gitlab-review-bot/internal/app/ds"
+	rd "github.com/spatecon/gitlab-review-bot/internal/app/policy/reinventing-democracy"
+	tlar "github.com/spatecon/gitlab-review-bot/internal/app/policy/team-lead-always-right"
 	"github.com/spatecon/gitlab-review-bot/internal/app/service"
-
-	prd "github.com/spatecon/gitlab-review-bot/internal/app/service/policy/reinventing-democracy"
 )
 
 func (a *App) initPolicies() error {
 	a.policies = make(map[ds.PolicyName]service.Policy)
 
-	a.policies[prd.PolicyName] = prd.New(a.repository, a.gitlabClient)
+	a.policies[rd.PolicyName] = rd.New(a.repository, a.gitlabClient)
+	a.policies[tlar.PolicyName] = tlar.New(a.repository, a.gitlabClient)
 
 	return nil
 }

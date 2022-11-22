@@ -124,7 +124,11 @@ func TestNotificationsService(t *testing.T) {
 
 	policy := mocks.NewPolicy(ctrl)
 	policy.EXPECT().
-		IsApproved(team, gomock.Any()).
+		ApprovedByPolicy(team, gomock.Any()).
+		Return(false).
+		MinTimes(1)
+	policy.EXPECT().
+		ApprovedByUser(team, gomock.Any(), gomock.Any()).
 		Return(false).
 		MinTimes(1)
 

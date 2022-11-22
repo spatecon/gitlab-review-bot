@@ -5,9 +5,10 @@ import "time"
 type PolicyName string
 
 type Team struct {
-	ID            string               `bson:"_id"`
-	Name          string               `bson:"name"`
-	Members       []*User              `bson:"members"`
+	ID      string  `bson:"_id"`
+	Name    string  `bson:"name"`
+	Members []*User `bson:"members"`
+	// TODO: add PolicySettings as bson.RawDocument
 	Policy        PolicyName           `bson:"policy"`
 	Notifications NotificationSettings `bson:"notifications"`
 	CreatedAt     time.Time            `bson:"created_at"`
@@ -37,13 +38,15 @@ func Developers(users []*User) []*User {
 	return devs
 }
 
-// Lead returns first lead of a team/list of users
-func Lead(users []*User) *User {
+// Leads returns leads of a team/list of users
+func Leads(users []*User) []*User {
+	leads := make([]*User, 0, len(users))
+
 	for _, user := range users {
 		if user.Labels.Has(LeadLabel) {
-			return user
+			leads = append(leads, user)
 		}
 	}
 
-	return nil
+	return leads
 }

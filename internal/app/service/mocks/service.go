@@ -6,6 +6,7 @@ package mocks
 
 import (
 	reflect "reflect"
+	time "time"
 
 	gomock "github.com/golang/mock/gomock"
 	ds "github.com/spatecon/gitlab-review-bot/internal/app/ds"
@@ -193,18 +194,18 @@ func (mr *GitlabClientMockRecorder) MergeRequestApproves(projectID, iid interfac
 }
 
 // MergeRequestsByProject mocks base method.
-func (m *GitlabClient) MergeRequestsByProject(projectID int) ([]*ds.MergeRequest, error) {
+func (m *GitlabClient) MergeRequestsByProject(projectID int, createdAfter time.Time) ([]*ds.MergeRequest, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "MergeRequestsByProject", projectID)
+	ret := m.ctrl.Call(m, "MergeRequestsByProject", projectID, createdAfter)
 	ret0, _ := ret[0].([]*ds.MergeRequest)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // MergeRequestsByProject indicates an expected call of MergeRequestsByProject.
-func (mr *GitlabClientMockRecorder) MergeRequestsByProject(projectID interface{}) *gomock.Call {
+func (mr *GitlabClientMockRecorder) MergeRequestsByProject(projectID, createdAfter interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MergeRequestsByProject", reflect.TypeOf((*GitlabClient)(nil).MergeRequestsByProject), projectID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MergeRequestsByProject", reflect.TypeOf((*GitlabClient)(nil).MergeRequestsByProject), projectID, createdAfter)
 }
 
 // SlackClient is a mock of SlackClient interface.
@@ -329,23 +330,37 @@ func (m *Policy) EXPECT() *PolicyMockRecorder {
 	return m.recorder
 }
 
-// IsApproved mocks base method.
-func (m *Policy) IsApproved(team *ds.Team, mr *ds.MergeRequest, byAll ...*ds.BasicUser) bool {
+// ApprovedByPolicy mocks base method.
+func (m *Policy) ApprovedByPolicy(team *ds.Team, mr *ds.MergeRequest) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ApprovedByPolicy", team, mr)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// ApprovedByPolicy indicates an expected call of ApprovedByPolicy.
+func (mr_2 *PolicyMockRecorder) ApprovedByPolicy(team, mr interface{}) *gomock.Call {
+	mr_2.mock.ctrl.T.Helper()
+	return mr_2.mock.ctrl.RecordCallWithMethodType(mr_2.mock, "ApprovedByPolicy", reflect.TypeOf((*Policy)(nil).ApprovedByPolicy), team, mr)
+}
+
+// ApprovedByUser mocks base method.
+func (m *Policy) ApprovedByUser(team *ds.Team, mr *ds.MergeRequest, byAll ...*ds.BasicUser) bool {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{team, mr}
 	for _, a := range byAll {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "IsApproved", varargs...)
+	ret := m.ctrl.Call(m, "ApprovedByUser", varargs...)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
-// IsApproved indicates an expected call of IsApproved.
-func (mr_2 *PolicyMockRecorder) IsApproved(team, mr interface{}, byAll ...interface{}) *gomock.Call {
+// ApprovedByUser indicates an expected call of ApprovedByUser.
+func (mr_2 *PolicyMockRecorder) ApprovedByUser(team, mr interface{}, byAll ...interface{}) *gomock.Call {
 	mr_2.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{team, mr}, byAll...)
-	return mr_2.mock.ctrl.RecordCallWithMethodType(mr_2.mock, "IsApproved", reflect.TypeOf((*Policy)(nil).IsApproved), varargs...)
+	return mr_2.mock.ctrl.RecordCallWithMethodType(mr_2.mock, "ApprovedByUser", reflect.TypeOf((*Policy)(nil).ApprovedByUser), varargs...)
 }
 
 // ProcessChanges mocks base method.
