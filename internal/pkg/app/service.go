@@ -4,9 +4,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/spatecon/gitlab-review-bot/internal/app/ds"
+	prd "github.com/spatecon/gitlab-review-bot/internal/app/policy/reinventing-democracy"
 	"github.com/spatecon/gitlab-review-bot/internal/app/service"
-
-	prd "github.com/spatecon/gitlab-review-bot/internal/app/service/policy/reinventing-democracy"
 )
 
 func (a *App) initPolicies() error {

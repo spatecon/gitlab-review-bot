@@ -32,7 +32,7 @@ func (s *Service) GetAuthoredReviewedMRs(team *ds.Team, users []*ds.User) (autho
 			continue
 		}
 
-		if policy.IsApproved(team, mr) {
+		if policy.ApprovedByPolicy(team, mr) {
 			continue
 		}
 
@@ -49,7 +49,7 @@ func (s *Service) GetAuthoredReviewedMRs(team *ds.Team, users []*ds.User) (autho
 	reviewerToMR = make(map[int][]*ds.MergeRequest, len(toReviewMRs))
 	for _, mr := range toReviewMRs {
 		for _, reviewer := range mr.Reviewers {
-			if policy.IsApproved(team, mr, reviewer) {
+			if policy.ApprovedByUser(team, mr, reviewer) {
 				continue
 			}
 

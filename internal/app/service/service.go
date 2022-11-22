@@ -39,10 +39,12 @@ type Worker interface {
 }
 
 type Policy interface {
+	// ProcessChanges may add new reviewers or do some actions
 	ProcessChanges(team *ds.Team, mr *ds.MergeRequest) (err error)
-	// IsApproved checks if merge request is approved by policy conditions or by passed teammates
-	// TODO: separate: ApprovedByAll, ApprovedByUser, ApprovedByTeam, ApprovedByPolicy
-	IsApproved(team *ds.Team, mr *ds.MergeRequest, byAll ...*ds.BasicUser) bool
+	// ApprovedByUser checks if merge request is approved by passed users
+	ApprovedByUser(team *ds.Team, mr *ds.MergeRequest, byAll ...*ds.BasicUser) bool
+	// ApprovedByPolicy checks if merge request is approved by policy conditions
+	ApprovedByPolicy(team *ds.Team, mr *ds.MergeRequest) bool
 }
 
 type Service struct {

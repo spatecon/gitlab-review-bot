@@ -5,9 +5,10 @@ import "time"
 type PolicyName string
 
 type Team struct {
-	ID            string               `bson:"_id"`
-	Name          string               `bson:"name"`
-	Members       []*User              `bson:"members"`
+	ID      string  `bson:"_id"`
+	Name    string  `bson:"name"`
+	Members []*User `bson:"members"`
+	// TODO: add PolicySettings as bson.RawDocument
 	Policy        PolicyName           `bson:"policy"`
 	Notifications NotificationSettings `bson:"notifications"`
 	CreatedAt     time.Time            `bson:"created_at"`

@@ -20,9 +20,9 @@ import (
 )
 
 const (
-	PolicyName ds.PolicyName = "reinventing_democracy"
-	// DevelopersCount number of developers to be picked (also count of dev approves)
-	DevelopersCount = 2
+	PolicyName ds.PolicyName = "rd"
+	// RequiredDevelopersCount number of developers to be picked (also count of dev approves)
+	RequiredDevelopersCount = 2
 )
 
 type Repository interface {
@@ -51,8 +51,9 @@ func New(r Repository, g GitlabClient) *Policy {
 }
 
 type metadata struct {
-	Approved     bool `bson:"approved"`
-	ReviewersSet bool `bson:"reviewers_set"`
+	ApprovedByPolicy  bool  `bson:"approved_by_policy"`
+	ReviewersSet      bool  `bson:"reviewers_set"`
+	ReviewersByPolicy []int `bson:"reviewers_by_policy"`
 }
 
 func (p *Policy) skip(mr *ds.MergeRequest, team *ds.Team) bool {
@@ -114,14 +115,14 @@ func (p *Policy) ProcessChanges(team *ds.Team, mr *ds.MergeRequest) (err error) 
 
 	// wasn't set before
 	if md.ReviewersSet {
-		// check for final approved
-		md.Approved = p.IsApproved(team, mr)
+		// check if approved by policy
+		md.ApprovedByPolicy = p.ApprovedByPolicy(team, mr)
 
 		return nil
 	}
 
 	// then set reviewers
-	md.ReviewersSet, err = p.setReviewers(team, mr)
+	err = p.setReviewers(team, mr, &md)
 	if err != nil {
 		return errors.Wrap(err, "failed to set reviewers")
 	}
@@ -129,7 +130,9 @@ func (p *Policy) ProcessChanges(team *ds.Team, mr *ds.MergeRequest) (err error) 
 	return nil
 }
 
-func (p *Policy) setReviewers(team *ds.Team, mr *ds.MergeRequest) (bool, error) {
+func (p *Policy) setReviewers(team *ds.Team, mr *ds.MergeRequest, md *metadata) error {
+	md.ReviewersSet = true
+
 	reviewersSet := set.NewMapset[int]()
 
 	for _, reviewer := range mr.Reviewers {
@@ -143,55 +146,78 @@ func (p *Policy) setReviewers(team *ds.Team, mr *ds.MergeRequest) (bool, error) 
 		return user.GitLabID != mr.Author.GitLabID
 	})
 
-	// randomize
-	devs = lo.Shuffle(devs)
+	developersSet := set.NewMapset[int]()
+	for _, dev := range devs {
+		developersSet.Put(dev.GitLabID)
+	}
 
-	//TODO: not set developers that already set as reviewers and take it into account when counting efficientReviewersCount
-	efficientReviewersCount := 0
+	// developers who are reviewers
+	inner := reviewersSet.Intersection(developersSet)
 
-	for i, dev := range devs {
-		efficientReviewersCount++
+	// count of developers which needed to set as reviewers
+	needDevsCount := RequiredDevelopersCount - inner.Size()
 
-		if i >= DevelopersCount {
+	// if we have enough reviewers from developers
+	if needDevsCount <= 0 {
+		return nil
+	}
+
+	// developers who are not reviewers
+	notPickedDevsSet := developersSet.Difference(reviewersSet)
+	notPickedDevs := lo.Shuffle(notPickedDevsSet.Keys())
+
+	for _, dev := range notPickedDevs {
+		if needDevsCount <= 0 {
 			break
 		}
 
-		reviewersSet.Put(dev.GitLabID)
+		md.ReviewersByPolicy = append(md.ReviewersByPolicy, dev)
+
+		reviewersSet.Put(dev)
+		needDevsCount--
 	}
 
 	err := p.g.SetReviewers(mr, reviewersSet.Keys())
 	if err != nil {
-		return false, errors.Wrap(err, "failed to set reviewers")
+		md.ReviewersSet = false
+		return errors.Wrap(err, "failed to set reviewers")
 	}
 
-	if efficientReviewersCount < DevelopersCount {
-		return false, nil
-	}
-
-	return true, nil
+	return nil
 }
 
-func (p *Policy) IsApproved(team *ds.Team, mr *ds.MergeRequest, byAll ...*ds.BasicUser) bool {
+func (p *Policy) ApprovedByUser(team *ds.Team, mr *ds.MergeRequest, byAll ...*ds.BasicUser) bool {
 	if p.skip(mr, team) {
-		// true means the MR was already approved
-		// or didn't meet "need approve" state yet
+		// true means the MR meet "need approve" state yet
+		// or closed, merged, locked
 		return true
 	}
 
-	if len(byAll) > 0 {
-		allNeeded := set.NewMapset[int]()
-		for _, user := range byAll {
-			allNeeded.Put(user.GitLabID)
-		}
-
-		for _, user := range mr.Approves {
-			allNeeded.Remove(user.GitLabID)
-		}
-
-		return allNeeded.Size() == 0 // all passed users approved the merge request
+	if len(byAll) == 0 {
+		return false
 	}
 
-	last := DevelopersCount
+	allNeeded := set.NewMapset[int]()
+	for _, user := range byAll {
+		allNeeded.Put(user.GitLabID)
+	}
+
+	approvesSet := set.NewMapset[int]()
+	for _, approve := range mr.Approves {
+		approvesSet.Put(approve.GitLabID)
+	}
+
+	return allNeeded.Difference(approvesSet).Size() == 0 // all passed users approved the merge request
+}
+
+func (p *Policy) ApprovedByPolicy(team *ds.Team, mr *ds.MergeRequest) bool {
+	if p.skip(mr, team) {
+		// true means the MR meet "need approve" state yet
+		// or closed, merged, locked
+		return true
+	}
+
+	left := RequiredDevelopersCount
 
 	for _, user := range mr.Approves {
 		if user.GitLabID == mr.Author.GitLabID {
@@ -210,9 +236,9 @@ func (p *Policy) IsApproved(team *ds.Team, mr *ds.MergeRequest, byAll ...*ds.Bas
 			continue
 		}
 
-		last--
+		left--
 	}
 
 	// approved condition
-	return last <= 0
+	return left <= 0
 }
