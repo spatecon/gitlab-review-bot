@@ -48,15 +48,23 @@ func (n *Notifications) Run() {
 		Str("team_id", n.team.ID).
 		Logger()
 
-	devs := ds.Developers(n.team.Members)
+	members := make([]*ds.User, 0, len(n.team.Members))
+	for _, member := range n.team.Members {
+		// only leads and developers are notified
+		if !member.Labels.Has(ds.DeveloperLabel) && !member.Labels.Has(ds.LeadLabel) {
+			continue
+		}
 
-	authorToMR, reviewerToMR, err := n.svc.GetAuthoredReviewedMRs(n.team, devs)
+		members = append(members, member)
+	}
+
+	authorToMR, reviewerToMR, err := n.svc.GetAuthoredReviewedMRs(n.team, members)
 	if err != nil {
 		l.Error().Err(err).Msg("failed to fetch MRs in notifications")
 		return
 	}
 
-	slackMessages, err := n.slackMessages(devs, authorToMR, reviewerToMR)
+	slackMessages, err := n.slackMessages(members, authorToMR, reviewerToMR)
 	if err != nil {
 		l.Error().Err(err).Msg("failed to generate slack messages")
 		return
