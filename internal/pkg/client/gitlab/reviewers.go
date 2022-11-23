@@ -11,18 +11,17 @@ import (
 func (c *Client) SetReviewers(mr *ds.MergeRequest, reviewers []int) error {
 	l := log.With().Int("project_id", mr.ProjectID).Int("mr_id", mr.IID).Logger()
 
-	l.Info().Ints("reviewers", reviewers).Msg("reviewers set")
-
 	c.rl.Take()
 	actual, resp, err := c.gitlab.MergeRequests.UpdateMergeRequest(mr.ProjectID, mr.IID, &gitlab.UpdateMergeRequestOptions{
 		ReviewerIDs: &reviewers,
 	})
-	if err != nil {
-		return errors.Wrap(err, "error calling gitlab apid to set reviewers")
-	}
 
 	if resp != nil {
 		l.Info().Ints("reviewers", reviewers).Str("status", resp.Status).Msg("reviewers set")
+	}
+
+	if err != nil {
+		return errors.Wrap(err, "error calling gitlab apid to set reviewers")
 	}
 
 	needed := make(map[int]bool, len(reviewers))
