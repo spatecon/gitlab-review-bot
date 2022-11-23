@@ -32,6 +32,6 @@ services:
     build:
         context: .
         dockerfile: deploy/Dockerfile
-    restart: always
+    restart: no
     environment:
       - MONGO_HOST=mongo
