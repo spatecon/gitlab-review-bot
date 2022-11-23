@@ -11,6 +11,7 @@ import (
 func (c *Client) SetReviewers(mr *ds.MergeRequest, reviewers []int) error {
 	log.Info().Int("project_id", mr.ProjectID).Int("mr_id", mr.IID).Ints("reviewers", reviewers).Msg("reviewers set")
 
+	c.rl.Take()
 	actual, _, err := c.gitlab.MergeRequests.UpdateMergeRequest(mr.ProjectID, mr.IID, &gitlab.UpdateMergeRequestOptions{
 		ReviewerIDs: &reviewers,
 	})

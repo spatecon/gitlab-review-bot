@@ -5,6 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/xanzy/go-gitlab"
+	"go.uber.org/ratelimit"
 )
 
 type Client struct {
@@ -12,6 +13,7 @@ type Client struct {
 	ctx context.Context
 
 	gitlab *gitlab.Client
+	rl     ratelimit.Limiter
 }
 
 func New(rootCtx context.Context, token string) (*Client, error) {
@@ -23,5 +25,6 @@ func New(rootCtx context.Context, token string) (*Client, error) {
 	return &Client{
 		ctx:    rootCtx,
 		gitlab: glClient,
+		rl:     ratelimit.New(3),
 	}, nil
 }

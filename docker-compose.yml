@@ -10,7 +10,7 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASS}
       - MONGO_INITDB_DATABASE=${MONGO_DB}
-    expose:
+    ports:
       - "127.0.0.1:27017:27017"
   mongo-express:
     image: mongo-express
@@ -32,6 +32,6 @@ services:
     build:
         context: .
         dockerfile: deploy/Dockerfile
-    restart: no
+    restart: "no"
     environment:
       - MONGO_HOST=mongo
