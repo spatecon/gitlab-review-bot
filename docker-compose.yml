@@ -26,4 +26,12 @@ services:
       - mongo
     ports:
       - "8081:8081"
-
+  gitlab-review-bot:
+    depends_on:
+      - mongo
+    build:
+        context: .
+        dockerfile: deploy/Dockerfile
+    restart: always
+    environment:
+      - MONGO_HOST=mongo
