@@ -23,6 +23,7 @@ func (c *Client) MergeRequestsByProject(projectID int, createdAfter time.Time) (
 
 	for i := 1; i <= maxPages; i++ {
 		log.Trace().Msg("fetching merge requests")
+		c.rl.Take()
 		// docs: https://docs.gitlab.com/ee/api/merge_requests.html#list-project-merge-requests
 		mergeRequests, resp, err := c.gitlab.MergeRequests.ListProjectMergeRequests(
 			projectID,

@@ -65,7 +65,7 @@ func (p *Policy) skip(mr *ds.MergeRequest, team *ds.Team) bool {
 	}
 
 	// skip closed, merged, locked
-	if mr.State != ds.StateOpened {
+	if !mr.State.Is(ds.StateOpened) {
 		return true
 	}
 

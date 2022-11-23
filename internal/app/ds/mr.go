@@ -1,8 +1,15 @@
 package ds
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 type State string
+
+func (s State) Is(want State) bool {
+	return strings.EqualFold(string(s), string(want))
+}
 
 const (
 	StateOpened State = "opened"
