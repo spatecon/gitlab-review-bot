@@ -16,9 +16,12 @@ func (c *Client) SetReviewers(mr *ds.MergeRequest, reviewers []int) error {
 		ReviewerIDs: &reviewers,
 	})
 
+	status := "unknown"
 	if resp != nil {
-		l.Info().Ints("reviewers", reviewers).Str("status", resp.Status).Msg("reviewers set")
+		status = resp.Status
 	}
+
+	l.Info().Ints("reviewers", reviewers).Str("status", status).Msg("reviewers set")
 
 	if err != nil {
 		return errors.Wrap(err, "error calling gitlab apid to set reviewers")
