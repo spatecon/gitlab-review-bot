@@ -1,6 +1,8 @@
 package worker
 
 import (
+	"strings"
+
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 
@@ -71,6 +73,10 @@ func (n *Notifications) Run() {
 	}
 
 	for _, message := range slackMessages {
+		if strings.TrimSpace(message.Text) == "" {
+			continue
+		}
+
 		err = n.slack.SendMessage(message.RecipientID, message.Text)
 		if err != nil {
 			l.Error().Err(err).Str("recipient_id", message.RecipientID).Msg("failed to send slack message")

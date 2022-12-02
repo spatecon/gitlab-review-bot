@@ -3,6 +3,7 @@ module github.com/spatecon/gitlab-review-bot
 go 1.19
 
 require (
+	github.com/gertd/go-pluralize v0.2.1
 	github.com/golang/mock v1.6.0
 	github.com/gookit/config/v2 v2.1.8
 	github.com/joho/godotenv v1.4.0
@@ -21,7 +22,6 @@ require (
 require (
 	github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/gertd/go-pluralize v0.2.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
