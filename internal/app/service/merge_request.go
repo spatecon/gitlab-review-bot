@@ -16,7 +16,7 @@ func (s *Service) mergeRequestsHandler(mr *ds.MergeRequest) error {
 
 	// if no changes, do nothing
 	if old != nil && old.IsEqual(mr) {
-		log.Info().
+		log.Debug().
 			Int("project_id", mr.ProjectID).
 			Int("iid", mr.IID).
 			Msg("mr skipped")
@@ -45,7 +45,6 @@ func (s *Service) mergeRequestsHandler(mr *ds.MergeRequest) error {
 
 	// process MR
 	for _, team := range s.teams {
-
 		if mr.CreatedAt != nil && mr.CreatedAt.Before(team.CreatedAt) {
 			log.Info().Str("team_id", team.ID).Msg("skip team, mr created before team")
 			continue
