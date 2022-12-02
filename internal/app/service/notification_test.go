@@ -29,6 +29,11 @@ var (
 		Name:     "Jane Doe",
 		GitLabID: 54321,
 	}
+	// Tony is a developer but nobody wants his review
+	Tony = &ds.BasicUser{
+		Name:     "Tony Stark",
+		GitLabID: 98989,
+	}
 )
 
 func TestNotificationsService(t *testing.T) {
@@ -40,7 +45,7 @@ func TestNotificationsService(t *testing.T) {
 	ts := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 
 	// Define message templates
-	userTemplate := `{{.User.Name}} has {{.ReviewerMR | len}} MRs waiting for review. Also, {{.User.Name}} has {{.AuthoredMR | len}} authored MRs in review.`
+	userTemplate := `{{.User.Name}} has {{.ReviewerMR | len}} MRs waiting for review. Also, {{.User.Name}} has {{.AuthoredMR | len}} authored MRs in review.{{ if and (not .ReviewerMR) (not .AuthoredMR) }} No MRs to pay attention to.{{- end -}}`
 
 	chanTemplate := `There are {{.TotalCount}} MRs waiting for review. Members of {{.Team.Name}} have an average of {{.AverageCount}} MRs waiting for review.`
 
@@ -53,6 +58,8 @@ func TestNotificationsService(t *testing.T) {
 		| Gordon |     | R   | A   | R   |
 		+--------+-----+-----+-----+-----+
 		| Jane   | R   | R   |     | A   |
+		+--------+-----+-----+-----+-----+
+		| Tony   |     |     |     |     |
 		+--------+-----+-----+-----+-----+
 	*/
 
@@ -111,6 +118,11 @@ func TestNotificationsService(t *testing.T) {
 				SlackID:   "XJFBBBBBBBBB",
 				Labels:    ds.UserLabels{ds.DeveloperLabel, ds.LeadLabel},
 			},
+			{
+				BasicUser: Tony,
+				SlackID:   "XJFDDDDDDDDD",
+				Labels:    ds.UserLabels{ds.DeveloperLabel},
+			},
 		},
 		Policy: "test_policy",
 		Notifications: ds.NotificationSettings{
@@ -138,11 +150,11 @@ func TestNotificationsService(t *testing.T) {
 		Return([]*ds.Team{}, nil).
 		MinTimes(1)
 	repository.EXPECT().
-		MergeRequestsByAuthor(gomock.InAnyOrder([]int{John.GitLabID, Gordon.GitLabID})).
+		MergeRequestsByAuthor(gomock.InAnyOrder([]int{John.GitLabID, Gordon.GitLabID, Tony.GitLabID})).
 		Return([]*ds.MergeRequest{MR1, MR2, MR3}, nil).
 		Times(1)
 	repository.EXPECT().
-		MergeRequestsByReviewer(gomock.InAnyOrder([]int{John.GitLabID, Gordon.GitLabID})).
+		MergeRequestsByReviewer(gomock.InAnyOrder([]int{John.GitLabID, Gordon.GitLabID, Tony.GitLabID})).
 		Return([]*ds.MergeRequest{MR2, MR3, MR4}, nil).
 		Times(1)
 
@@ -182,9 +194,15 @@ func TestNotificationsService(t *testing.T) {
 		require.Equal(t, `Gordon Freeman has 2 MRs waiting for review. Also, Gordon Freeman has 1 authored MRs in review.`, actual)
 	})
 
+	t.Run("Tony message", func(t *testing.T) {
+		actual, err := svc.UserNotification(team.Members[2], team, authorToMRs, reviewerToMRs)
+		require.NoError(t, err, "UserNotification() failed")
+		require.Equal(t, `Tony Stark has 0 MRs waiting for review. Also, Tony Stark has 0 authored MRs in review. No MRs to pay attention to.`, actual)
+	})
+
 	t.Run("Channel message", func(t *testing.T) {
 		actual, err := svc.TeamNotification(team, authorToMRs, reviewerToMRs)
 		require.NoError(t, err, "TeamNotification() failed")
-		require.Equal(t, `There are 3 MRs waiting for review. Members of Test Team have an average of 2 MRs waiting for review.`, actual)
+		require.Equal(t, `There are 3 MRs waiting for review. Members of Test Team have an average of 1 MRs waiting for review.`, actual)
 	})
 }

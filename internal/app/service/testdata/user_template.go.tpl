@@ -15,4 +15,8 @@
 *{{.Title}}*
 {{.URL}} менялся *{{.UpdatedAt | since}}*
 {{ end -}}
-{{- end -}}
+{{- end }}
+
+{{ if and (not .ReviewerMR) (not .AuthoredMR) -}}
+:ok_hand: Нет реквестов, требующих внимания
+{{- end -}}`
