@@ -46,7 +46,7 @@ func (a *App) initRepository() error {
 
 	log.Trace().Msg("connected to mongo successfully")
 
-	a.repository, err = repository.New(a.mongoClient, a.cfg.Mongo.DB)
+	a.repository, err = repository.New(a.ctx, a.mongoClient, a.cfg.Mongo.DB)
 	if err != nil {
 		return errors.Wrap(err, "failed to create repository")
 	}

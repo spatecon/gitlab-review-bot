@@ -12,9 +12,8 @@ import (
 )
 
 func (r *Repository) MergeRequestByID(id int) (*ds.MergeRequest, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	ctx, cancel := context.WithTimeout(r.ctx, defaultTimeout)
 	defer cancel()
-
 	mergeRequest := &ds.MergeRequest{}
 
 	err := r.mergeRequests.FindOne(ctx, bson.D{{"id", id}}).Decode(&mergeRequest)
@@ -30,7 +29,7 @@ func (r *Repository) MergeRequestByID(id int) (*ds.MergeRequest, error) {
 }
 
 func (r *Repository) MergeRequestsByProject(projectID int) ([]*ds.MergeRequest, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	ctx, cancel := context.WithTimeout(r.ctx, defaultTimeout)
 	defer cancel()
 
 	cursor, err := r.mergeRequests.Find(ctx, bson.D{{"project_id", projectID}})
@@ -48,8 +47,48 @@ func (r *Repository) MergeRequestsByProject(projectID int) ([]*ds.MergeRequest, 
 	return mrs, nil
 }
 
-func (r *Repository) UpsertMergeRequest(mr *ds.MergeRequest) error {
+func (r *Repository) MergeRequestsByAuthor(authorID []int) ([]*ds.MergeRequest, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	defer cancel()
+
+	cursor, err := r.mergeRequests.Find(ctx, bson.D{{"author.gitlab_id", bson.M{"$in": authorID}}})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find merge requests")
+	}
+
+	mrs := make([]*ds.MergeRequest, 0, 100)
+
+	err = cursor.All(ctx, &mrs)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to decode merge requests")
+	}
+
+	return mrs, nil
+}
+
+func (r *Repository) MergeRequestsByReviewer(reviewerID []int) ([]*ds.MergeRequest, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	defer cancel()
+
+	cursor, err := r.mergeRequests.Find(ctx,
+		bson.M{"reviewers": bson.M{"$elemMatch": bson.M{"gitlab_id": bson.M{"$in": reviewerID}}}},
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find merge requests")
+	}
+
+	mrs := make([]*ds.MergeRequest, 0, 100)
+
+	err = cursor.All(ctx, &mrs)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to decode merge requests")
+	}
+
+	return mrs, nil
+}
+
+func (r *Repository) UpsertMergeRequest(mr *ds.MergeRequest) error {
+	ctx, cancel := context.WithTimeout(r.ctx, defaultTimeout)
 	defer cancel()
 
 	opts := &options.UpdateOptions{}

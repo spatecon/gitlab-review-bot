@@ -2,7 +2,8 @@
 
 A server application that observes GitLab merge requests (MR) and rotates reviews using custom Review&Approve policies.
 
-<img alt="Go" src="https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white"> <img alt="GitHub" src="https://img.shields.io/github/license/spatecon/gitlab-review-bot?color=blue&style=for-the-badge">
+<img alt="Go" src="https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white"> <img alt="GitHub" src="https://img.shields.io/github/license/spatecon/gitlab-review-bot?color=blue&style=for-the-badge"> <br>
+<img alt="gopher-in-glasses" src="docs/readme/assets/gopher.png" width="300">
 
 ## Situation
 
@@ -44,10 +45,10 @@ Review bot (written in Go)
 
 - [x] Reviewers rotation
 - [x] Action on approved condition
-- [ ] Slack reviews reminder (TODO)
-    - [ ] Scheduled (e.g., after daily)
-    - [ ] On user request
-- [ ] Statistics gathering (TODO)
-- [ ] Day off and vacation accounting (TODO)
-- [ ] Jira task status integration (TODO)
-- [x] Custom Review&Approve policies
+- [x] Slack reviews reminder
+    - [x] Scheduled (e.g., after daily)
+    - [x] On user request (`/mr` command)
+- [ ] Statistics gathering
+- [ ] Jira task status integration
+- [ ] Custom Review&Approve policies without rebuild
+- [ ] Day off and vacation accounting

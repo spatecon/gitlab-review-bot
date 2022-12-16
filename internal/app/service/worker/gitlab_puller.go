@@ -8,10 +8,12 @@ import (
 	"github.com/spatecon/gitlab-review-bot/internal/app/ds"
 )
 
-const pullPeriod = 5 * time.Minute
+const (
+	gitlabPullerWorkerName = "gitlab_puller_worker"
+)
 
 type GitlabClient interface {
-	MergeRequestsByProject(projectID int) ([]*ds.MergeRequest, error)
+	MergeRequestsByProject(projectID int, createdAfter time.Time) ([]*ds.MergeRequest, error)
 }
 
 type MergeRequestHandler func(mr *ds.MergeRequest) error
@@ -22,23 +24,23 @@ type GitLabPuller struct {
 	projectID  int
 	pullPeriod time.Duration
 	close      chan struct{}
+	after      time.Time
 }
 
-func NewGitLabPuller(gitlab GitlabClient, handler MergeRequestHandler, projectID int) (*GitLabPuller, error) {
+func NewGitLabPuller(pullPeriod time.Duration, after time.Time, gitlab GitlabClient, handler MergeRequestHandler, projectID int) (*GitLabPuller, error) {
 	worker := &GitLabPuller{
 		gitlab:     gitlab,
 		handler:    handler,
 		projectID:  projectID,
 		pullPeriod: pullPeriod,
+		after:      after,
 		close:      make(chan struct{}),
 	}
-
-	worker.Start()
 
 	return worker, nil
 }
 
-func (g *GitLabPuller) Start() {
+func (g *GitLabPuller) Run() {
 	go func() {
 		ticker := time.NewTicker(g.pullPeriod)
 		startup := time.NewTimer(5 * time.Second)
@@ -59,21 +61,30 @@ func (g *GitLabPuller) Start() {
 }
 
 func (g *GitLabPuller) pullAndHandle() {
-	mrs, err := g.gitlab.MergeRequestsByProject(g.projectID)
+	l := log.With().
+		Str("worker", gitlabPullerWorkerName).
+		Int("project_id", g.projectID).
+		Logger()
+
+	l.Info().Msg("pulling merge requests")
+
+	mrs, err := g.gitlab.MergeRequestsByProject(g.projectID, g.after)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to fetch merge requests")
+		l.Error().Err(err).Msg("failed to fetch merge requests")
 	}
 
-	log.Info().Int("project_id", g.projectID).
+	l.Info().Int("project_id", g.projectID).
 		Int("count", len(mrs)).
-		Msg("fetched merge requests")
+		Msg("pulled merge requests successfully")
 
 	for _, mr := range mrs {
 		err = g.handler(mr)
 		if err != nil {
-			log.Error().Err(err).Msg("failed to handle merge requests")
+			l.Error().Err(err).Msg("failed to handle merge requests")
 		}
 	}
+
+	log.Info().Int("project_id", g.projectID).Msg("merge requests handled")
 }
 
 func (g *GitLabPuller) Close() {

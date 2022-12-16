@@ -1,8 +1,15 @@
 package ds
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 type State string
+
+func (s State) Is(want State) bool {
+	return strings.EqualFold(string(s), string(want))
+}
 
 const (
 	StateOpened State = "opened"
@@ -25,6 +32,7 @@ type MergeRequest struct {
 	Reviewers    []*BasicUser `bson:"reviewers"`
 	Draft        bool         `bson:"draft"`
 	SHA          string       `bson:"sha"`
+	URL          string       `bson:"url"`
 	UpdatedAt    *time.Time   `bson:"updated_at"`
 	CreatedAt    *time.Time   `bson:"created_at"`
 
@@ -74,11 +82,11 @@ func (a *MergeRequest) IsEqual(b *MergeRequest) bool {
 		return false
 	}
 
-	if !EqualUsers(a.Assignees, b.Assignees) {
+	if !AreUsersEqual(a.Assignees, b.Assignees) {
 		return false
 	}
 
-	if !EqualUsers(a.Reviewers, b.Reviewers) {
+	if !AreUsersEqual(a.Reviewers, b.Reviewers) {
 		return false
 	}
 
@@ -87,6 +95,10 @@ func (a *MergeRequest) IsEqual(b *MergeRequest) bool {
 	}
 
 	if a.SHA != b.SHA {
+		return false
+	}
+
+	if a.URL != b.URL {
 		return false
 	}
 

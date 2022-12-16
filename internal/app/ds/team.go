@@ -1,17 +1,17 @@
 package ds
 
+import "time"
+
 type PolicyName string
 
 type Team struct {
-	ID                    string     `bson:"_id"`
-	Name                  string     `bson:"name"`
-	Members               []*User    `bson:"members"`
-	SlackChannelID        string     `bson:"slack_channel_id"`
-	Policy                PolicyName `bson:"policy"`
-	NotificationTemplates struct {
-		UserNotification    string `bson:"user_notification"`
-		ChannelNotification string `bson:"channel_notification"`
-	} `bson:"notification_templates"`
+	ID      string  `bson:"_id"`
+	Name    string  `bson:"name"`
+	Members []*User `bson:"members"`
+	// TODO: add PolicySettings as bson.RawDocument
+	Policy        PolicyName           `bson:"policy"`
+	Notifications NotificationSettings `bson:"notifications"`
+	CreatedAt     time.Time            `bson:"created_at"`
 }
 
 // Teammate checks if user is a member of a team
@@ -38,13 +38,15 @@ func Developers(users []*User) []*User {
 	return devs
 }
 
-// Lead returns first lead of a team/list of users
-func Lead(users []*User) *User {
+// Leads returns leads of a team/list of users
+func Leads(users []*User) []*User {
+	leads := make([]*User, 0, len(users))
+
 	for _, user := range users {
 		if user.Labels.Has(LeadLabel) {
-			return user
+			leads = append(leads, user)
 		}
 	}
 
-	return nil
+	return leads
 }

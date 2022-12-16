@@ -7,6 +7,7 @@ import (
 )
 
 func (c *Client) MergeRequestApproves(projectID int, iid int) ([]*ds.BasicUser, error) {
+	c.rl.Take()
 	approvals, _, err := c.gitlab.MergeRequestApprovals.GetConfiguration(projectID, iid)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get merge request approvals")

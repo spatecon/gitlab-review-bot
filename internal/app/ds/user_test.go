@@ -163,8 +163,8 @@ func TestEqualUsers(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := EqualUsers(tt.args.u1, tt.args.u2); got != tt.want {
-				t.Errorf("EqualUsers() = %v, want %v", got, tt.want)
+			if got := AreUsersEqual(tt.args.u1, tt.args.u2); got != tt.want {
+				t.Errorf("AreUsersEqual() = %v, want %v", got, tt.want)
 			}
 		})
 	}

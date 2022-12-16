@@ -24,7 +24,7 @@ func EqualUser(user *BasicUser, other *BasicUser) bool {
 	return user.GitLabID == other.GitLabID
 }
 
-func EqualUsers(left []*BasicUser, right []*BasicUser) bool {
+func AreUsersEqual(left []*BasicUser, right []*BasicUser) bool {
 	if len(left) != len(right) {
 		return false
 	}
