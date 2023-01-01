@@ -11,7 +11,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.28.0
 	github.com/samber/lo v1.36.0
-	github.com/slack-go/slack v0.11.4
+	github.com/slack-go/slack v0.12.1
 	github.com/stretchr/testify v1.8.1
 	github.com/xanzy/go-gitlab v0.76.0
 	github.com/zyedidia/generic v1.2.0
