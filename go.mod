@@ -14,7 +14,7 @@ require (
 	github.com/slack-go/slack v0.12.1
 	github.com/stretchr/testify v1.8.1
 	github.com/xanzy/go-gitlab v0.79.0
-	github.com/zyedidia/generic v1.2.0
+	github.com/zyedidia/generic v1.2.1
 	go.mongodb.org/mongo-driver v1.11.1
 	go.uber.org/ratelimit v0.2.0
 )
