@@ -29,7 +29,7 @@ func (t *Tools) Plural(n int, wordForms ...string) string {
 		return forms[2]
 	}
 
-	n = n % 10
+	n %= 10
 
 	if n == 1 {
 		return forms[0]

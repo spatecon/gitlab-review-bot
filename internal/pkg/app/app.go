@@ -57,10 +57,7 @@ func New(configPath string) (*App, error) {
 		return nil, errors.Wrap(err, "failed to init clients")
 	}
 
-	err = app.initPolicies()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to init policies")
-	}
+	app.initPolicies()
 
 	err = app.initService()
 	if err != nil {

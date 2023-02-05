@@ -1,6 +1,48 @@
+linters-settings:
+  govet:
+    check-shadowing: false
+  golint:
+    min-confidence: 0
+  goconst:
+    min-len: 2
+    min-occurrences: 2
+  gocritic:
+    disabled-checks:
+      - ifElseChain
+  nakedret:
+    max-func-lines: 15
+  goimports:
+    local-prefixes: gitlab.com/tabby.ai/scoring
+
+run:
+  skip-dirs:
+    - mocks
+
+linters:
+  enable:
+    - gocritic
+    - stylecheck
+    - goimports
+    - gosec
+    - unconvert
+    - unparam
+    - gosec
+    - nakedret
+    - whitespace
+    - gosimple
+    - bodyclose
+    - dogsled
+  disable:
+    - gochecknoinits
+    - maligned
+    - lll
+    - dupl
+    - gochecknoglobals
+
 issues:
   exclude:
     - "Error return value of .((os\\.)?std(out|err)\\..*|.*Close|.*Flush|os\\.Remove(All)?|.*printf?|os\\.(Un)?Setenv). is not checked"
     - "exported (type|method|function) (.+) should have comment or be unexported"
     - "ST1000: at least one file in a package should have a package comment"
     - "composites: go.mongodb.org/mongo-driver/bson/primitive.E struct literal uses unkeyed fields"
+    - ST1003

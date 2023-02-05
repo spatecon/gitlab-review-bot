@@ -89,7 +89,6 @@ func (n *Notifications) slackMessages(
 	devs []*ds.User,
 	authorToMR, reviewerToMR map[int][]*ds.MergeRequest,
 ) ([]SlackMessage, error) {
-
 	slackMessages := make([]SlackMessage, 0, len(devs)+1)
 
 	for _, dev := range devs {

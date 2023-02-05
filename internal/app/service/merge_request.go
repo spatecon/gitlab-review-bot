@@ -67,7 +67,6 @@ func (s *Service) mergeRequestsHandler(mr *ds.MergeRequest) error {
 				Str("policy", string(team.Policy)).
 				Msg("failed to process merge request")
 		}
-
 	}
 
 	return nil
