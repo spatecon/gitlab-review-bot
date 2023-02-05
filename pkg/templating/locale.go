@@ -12,7 +12,7 @@ const (
 
 // ParseLocale parses locale from string and returns Locale type and true if found, or Default locale and false.
 func ParseLocale(locale string) (Locale, bool) {
-	locale = strings.Replace(locale, "-", "_", -1)
+	locale = strings.ReplaceAll(locale, "-", "_")
 	locale = strings.ToLower(locale)
 	locale = strings.Trim(locale, " ")
 

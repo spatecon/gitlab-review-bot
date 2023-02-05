@@ -47,7 +47,6 @@ func New(r Repository, g GitlabClient) *Policy {
 		r: r,
 		g: g,
 	}
-
 }
 
 type metadata struct {

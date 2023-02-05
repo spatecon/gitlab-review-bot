@@ -120,7 +120,6 @@ func (s *Service) TeamNotification(team *ds.Team, authorToMR, reviewerToMR map[i
 				summary.LastEditedMR = mr
 			}
 		}
-
 	}
 
 	summary.TotalCount = len(uniqMR)
