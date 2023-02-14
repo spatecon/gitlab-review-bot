@@ -113,8 +113,8 @@ github.com/tidwall/pretty v1.0.0/go.mod h1:XNkn88O1ChpSDQmQeStsy+sBenx6DDtFZJxhV
 github.com/vmihailenco/msgpack v3.3.3+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=
 github.com/vmihailenco/msgpack/v4 v4.3.12/go.mod h1:gborTTJjAo/GWTqqRjrLCn9pgNN+NXzzngzBKDPIqw4=
 github.com/vmihailenco/tagparser v0.1.1/go.mod h1:OeAg3pn3UbLjkWt+rN9oFYB6u/cQgqMEUPoW2WPyhdI=
-github.com/xanzy/go-gitlab v0.79.1 h1:ZmEei8RZYlqk4D7nYrWWZqywmKBOd7vmPMlJbueZXUU=
-github.com/xanzy/go-gitlab v0.79.1/go.mod h1:DlByVTSXhPsJMYL6+cm8e8fTJjeBmhrXdC/yvkKKt6M=
+github.com/xanzy/go-gitlab v0.80.0 h1:2d6RwUrI3ZC2Xh9urnqiiHCLzWNndrGtje3yByZubdQ=
+github.com/xanzy/go-gitlab v0.80.0/go.mod h1:DlByVTSXhPsJMYL6+cm8e8fTJjeBmhrXdC/yvkKKt6M=
 github.com/xdg-go/pbkdf2 v1.0.0 h1:Su7DPu48wXMwC3bs7MCNG+z4FhcyEuz5dlvchbq0B0c=
 github.com/xdg-go/pbkdf2 v1.0.0/go.mod h1:jrpuAogTd400dnrH08LKmI/xc1MbPOebTwRqcT5RDeI=
 github.com/xdg-go/scram v1.1.1 h1:VOMT+81stJgXW3CpHyqHN3AXDYIMsx56mEFrB37Mb/E=
