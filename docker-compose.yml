@@ -27,11 +27,9 @@ services:
     ports:
       - "8081:8081"
   gitlab-review-bot:
+    image: spatecon/gitlab-review-bot:latest
     depends_on:
       - mongo
-    build:
-        context: .
-        dockerfile: deploy/Dockerfile
     restart: "no"
     environment:
       - MONGO_HOST=mongo

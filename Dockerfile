@@ -7,7 +7,7 @@ COPY go.sum ./
 
 RUN go mod download
 
-COPY ./ ./
+COPY . .
 RUN go build -o /gitlab-review-bot github.com/spatecon/gitlab-review-bot/cmd/gitlab-review-bot
 
 CMD ["/gitlab-review-bot"]
