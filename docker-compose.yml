@@ -31,5 +31,14 @@ services:
     depends_on:
       - mongo
     restart: "no"
+    volumes:
+      - './config/config.yml:/app/config/config.yml'
     environment:
       - MONGO_HOST=mongo
+      - MONGO_PORT=27017
+      - MONGO_DB=grb
+      - MONGO_USER=${MONGO_USER}
+      - MONGO_PASS=${MONGO_PASS}
+      - GITLAB_TOKEN=${GITLAB_TOKEN}
+      - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}
+      - SLACK_APP_TOKEN=${SLACK_APP_TOKEN}
