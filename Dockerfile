@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY go.mod ./
 COPY go.sum ./
+COPY pkg ./pkg
 
 RUN go mod download
 
