@@ -1,0 +1,37 @@
+package motivational
+
+// ReviewMotivationEnPhrases contains a list of motivational phrases in English
+// based on English and American proverbs and sayings
+var ReviewMotivationEnPhrases = []string{
+	"Time flies, let's review the code",
+	"A stitch in time saves a review",
+	"Beauty is in the eye of the code reviewer",
+	"Measure twice, approve once",
+	"A watched MR never gets approved",
+	"Better the approval you know than the approval you don't",
+	"An ounce of review is worth a pound of approval",
+	"Actions speak louder than approvals",
+	"Great oaks from little acorns grow, review the code to make it so",
+	"Two heads are better than one, let's review together",
+	"Strike while the code is hot",
+	"You can't make an omelette without breaking a few bugs",
+	"Practice makes perfect reviews",
+	"Don't count your approvals before they're given",
+	"There's no place like a reviewed code",
+	"A bird in the hand is worth two approvals",
+	"Out of sight, out of mind, don't let your MRs fall behind",
+	"All's well that reviews well",
+	"Don't put all your approvals in one basket",
+	"The early bird catches the bugs",
+	"Good things come to those who review",
+	"Look before you approve",
+	"It's better to review and fail than never to review at all",
+	"Where there's smoke, there's a code review",
+	"You can lead a developer to an MR, but you can't make them approve",
+	"Rome wasn't built in a day, neither is perfect code",
+	"The pen is mightier than the sword, and so is the code review",
+	"Slow and steady wins the review race",
+	"Many hands make light work of code reviews",
+	"An MR a day keeps the bugs away",
+	"Don't bite off more than you can review",
+}

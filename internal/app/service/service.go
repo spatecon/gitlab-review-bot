@@ -63,7 +63,10 @@ func New(r Repository, g GitlabClient, p map[ds.PolicyName]Policy, slack SlackCl
 		r:        r,
 		gitlab:   g,
 		slack:    slack,
+		teams:    nil,
 		policies: p,
+		cron:     nil,
+		workers:  nil,
 	}
 
 	// TODO: team hot reload (just don't save it in service)
