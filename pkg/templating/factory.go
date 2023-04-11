@@ -17,9 +17,10 @@ type Tools interface {
 	TimeDiff
 
 	Plural(n int, wordForms ...string) string
+	Motivation() string
 }
 
-func NewTools(locale Locale) Tools {
+func NewTools(locale Locale) Tools { //nolint:ireturn
 	switch locale {
 	case LocaleRuRu:
 		return ru_RU.NewTools()

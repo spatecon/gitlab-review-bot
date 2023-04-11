@@ -2,7 +2,10 @@ package ru_RU
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
+
+	"github.com/spatecon/gitlab-review-bot/pkg/motivational"
 )
 
 type Tools struct {
@@ -68,4 +71,11 @@ func (t *Tools) Since(tm time.Time) string {
 	}
 
 	return fmt.Sprintf("%d %s назад", val, metric)
+}
+
+func (t *Tools) Motivation() string {
+	// pick random motivational phrase from motivational.ReviewMotivationEnPhrases
+	i := rand.Int() % len(motivational.ReviewMotivationEnPhrases)
+
+	return motivational.ReviewMotivationEnPhrases[i]
 }

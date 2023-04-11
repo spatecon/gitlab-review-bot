@@ -2,9 +2,11 @@ package en_EN
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/gertd/go-pluralize"
+	"github.com/spatecon/gitlab-review-bot/pkg/motivational"
 )
 
 type Tools struct {
@@ -56,4 +58,11 @@ func (t *Tools) Since(tm time.Time) string {
 	}
 
 	return fmt.Sprintf("%d %s ago", val, metric)
+}
+
+func (t *Tools) Motivation() string {
+	// pick random motivational phrase from motivational.ReviewMotivationRuPhrases
+	i := rand.Int() % len(motivational.ReviewMotivationRuPhrases)
+
+	return motivational.ReviewMotivationRuPhrases[i]
 }

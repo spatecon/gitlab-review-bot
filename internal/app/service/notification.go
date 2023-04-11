@@ -13,7 +13,10 @@ import (
 	"github.com/spatecon/gitlab-review-bot/pkg/templating"
 )
 
-func (s *Service) GetAuthoredReviewedMRs(team *ds.Team, users []*ds.User) (authorToMR, reviewerToMR map[int][]*ds.MergeRequest, err error) {
+func (s *Service) GetAuthoredReviewedMRs(
+	team *ds.Team,
+	users []*ds.User,
+) (authorToMR, reviewerToMR map[int][]*ds.MergeRequest, err error) {
 	policy, ok := s.policies[team.Policy]
 	if !ok {
 		return nil, nil, errors.Errorf("policy %s not found", team.Policy)
@@ -27,6 +30,7 @@ func (s *Service) GetAuthoredReviewedMRs(team *ds.Team, users []*ds.User) (autho
 	}
 
 	authorToMR = make(map[int][]*ds.MergeRequest, len(authoredMRs))
+
 	for _, mr := range authoredMRs {
 		if mr.Author == nil {
 			continue
@@ -60,7 +64,11 @@ func (s *Service) GetAuthoredReviewedMRs(team *ds.Team, users []*ds.User) (autho
 	return authorToMR, reviewerToMR, nil
 }
 
-func (s *Service) UserNotification(user *ds.User, team *ds.Team, authorToMR, reviewerToMR map[int][]*ds.MergeRequest) (message string, err error) {
+func (s *Service) UserNotification(
+	user *ds.User,
+	team *ds.Team,
+	authorToMR, reviewerToMR map[int][]*ds.MergeRequest,
+) (message string, err error) {
 	// TODO: optimize initializations for performance
 	userTemplate := template.New("user_notification").Funcs(s.templateFuncMap(team.Notifications.Locale))
 
@@ -83,7 +91,10 @@ func (s *Service) UserNotification(user *ds.User, team *ds.Team, authorToMR, rev
 	return msg.String(), nil
 }
 
-func (s *Service) TeamNotification(team *ds.Team, authorToMR, reviewerToMR map[int][]*ds.MergeRequest) (message string, err error) {
+func (s *Service) TeamNotification(
+	team *ds.Team,
+	authorToMR, reviewerToMR map[int][]*ds.MergeRequest,
+) (message string, err error) {
 	channelTemplate := template.New("team_notification").Funcs(s.templateFuncMap(team.Notifications.Locale))
 
 	channelTemplate, err = channelTemplate.Parse(team.Notifications.ChannelTemplate)
@@ -105,6 +116,7 @@ func (s *Service) TeamNotification(team *ds.Team, authorToMR, reviewerToMR map[i
 			log.Warn().
 				Str("user", member.Name).
 				Msg("skipping user without Slack ID")
+
 			continue
 		}
 
@@ -120,7 +132,6 @@ func (s *Service) TeamNotification(team *ds.Team, authorToMR, reviewerToMR map[i
 				summary.LastEditedMR = mr
 			}
 		}
-
 	}
 
 	summary.TotalCount = len(uniqMR)
@@ -146,7 +157,8 @@ func (s *Service) templateFuncMap(locale string) template.FuncMap {
 	tools := templating.NewTools(loc)
 
 	return template.FuncMap{
-		"since":  tools.Since,
-		"plural": tools.Plural,
+		"since":      tools.Since,
+		"plural":     tools.Plural,
+		"motivation": tools.Motivation,
 	}
 }
