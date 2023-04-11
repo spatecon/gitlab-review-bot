@@ -61,8 +61,8 @@ func (t *Tools) Since(tm time.Time) string {
 }
 
 func (t *Tools) Motivation() string {
-	// pick random motivational phrase from motivational.ReviewMotivationRuPhrases
-	i := rand.Int() % len(motivational.ReviewMotivationRuPhrases)
+	// pick random motivational phrase from motivational.ReviewMotivationEnPhrases
+	i := rand.Int() % len(motivational.ReviewMotivationEnPhrases) //nolint:gosec
 
-	return motivational.ReviewMotivationRuPhrases[i]
+	return motivational.ReviewMotivationEnPhrases[i]
 }
