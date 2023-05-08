@@ -12,10 +12,11 @@ require (
 	github.com/rs/zerolog v1.29.0
 	github.com/samber/lo v1.38.1
 	github.com/slack-go/slack v0.12.1
+	github.com/spatecon/gitlab-review-bot/pkg/motivational v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.8.2
 	github.com/xanzy/go-gitlab v0.82.0
 	github.com/zyedidia/generic v1.2.1
-	go.mongodb.org/mongo-driver v1.11.4
+	go.mongodb.org/mongo-driver v1.11.6
 	go.uber.org/ratelimit v0.2.0
 )
 
@@ -40,7 +41,6 @@ require (
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/segmentio/fasthash v1.0.3 // indirect
-	github.com/spatecon/gitlab-review-bot/pkg/motivational v0.0.0-00010101000000-000000000000 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.1 // indirect
 	github.com/xdg-go/stringprep v1.0.3 // indirect
