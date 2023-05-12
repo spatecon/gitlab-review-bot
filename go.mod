@@ -9,7 +9,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/rs/zerolog v1.29.0
+	github.com/rs/zerolog v1.29.1
 	github.com/samber/lo v1.38.1
 	github.com/slack-go/slack v0.12.1
 	github.com/spatecon/gitlab-review-bot/pkg/motivational v0.0.0-00010101000000-000000000000
