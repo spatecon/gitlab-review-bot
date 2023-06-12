@@ -16,7 +16,7 @@ require (
 	github.com/stretchr/testify v1.8.2
 	github.com/xanzy/go-gitlab v0.83.0
 	github.com/zyedidia/generic v1.2.1
-	go.mongodb.org/mongo-driver v1.11.6
+	go.mongodb.org/mongo-driver v1.11.7
 	go.uber.org/ratelimit v0.2.0
 )
 
