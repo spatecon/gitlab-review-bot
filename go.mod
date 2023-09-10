@@ -17,11 +17,11 @@ require (
 	github.com/xanzy/go-gitlab v0.91.1
 	github.com/zyedidia/generic v1.2.1
 	go.mongodb.org/mongo-driver v1.11.6
-	go.uber.org/ratelimit v0.2.0
+	go.uber.org/ratelimit v0.3.0
 )
 
 require (
-	github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129 // indirect
+	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/color v1.14.1 // indirect
 	github.com/goccy/go-yaml v1.11.0 // indirect
