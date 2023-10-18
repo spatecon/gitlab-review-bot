@@ -9,7 +9,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/rs/zerolog v1.29.1
+	github.com/rs/zerolog v1.31.0
 	github.com/samber/lo v1.38.1
 	github.com/slack-go/slack v0.12.3
 	github.com/spatecon/gitlab-review-bot/pkg/motivational v0.0.0-00010101000000-000000000000
@@ -36,7 +36,7 @@ require (
 	github.com/imdario/mergo v0.3.15 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.17 // indirect
+	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
