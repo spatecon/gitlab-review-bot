@@ -17,7 +17,7 @@ require (
 	github.com/xanzy/go-gitlab v0.95.2
 	github.com/zyedidia/generic v1.2.1
 	go.mongodb.org/mongo-driver v1.11.6
-	go.uber.org/ratelimit v0.3.0
+	go.uber.org/ratelimit v0.3.1
 )
 
 require (
