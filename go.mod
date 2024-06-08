@@ -13,7 +13,7 @@ require (
 	github.com/samber/lo v1.39.0
 	github.com/slack-go/slack v0.12.4
 	github.com/spatecon/gitlab-review-bot/pkg/motivational v0.0.0-00010101000000-000000000000
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/xanzy/go-gitlab v0.95.2
 	github.com/zyedidia/generic v1.2.1
 	go.mongodb.org/mongo-driver v1.11.6
